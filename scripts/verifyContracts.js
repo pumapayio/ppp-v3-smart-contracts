@@ -1,4 +1,4 @@
-const {spawn} = require('child_process');
+const { spawn } = require('child_process');
 
 const verifyContracts = (networkId) => {
 	const addresses = require(`../configurations/${networkId}/Addresses.json`);
@@ -31,4 +31,4 @@ const verifyContracts = (networkId) => {
 	}
 };
 
-module.exports = {verifyContracts};
+module.exports = { verifyContracts };

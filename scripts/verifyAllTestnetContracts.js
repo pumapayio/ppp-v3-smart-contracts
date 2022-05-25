@@ -1,3 +1,3 @@
-const {verifyContracts} = require('./verifyContracts');
+const { verifyContracts } = require('./verifyContracts');
 
 verifyContracts('97');

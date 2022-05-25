@@ -1,14 +1,13 @@
 // Load dependencies
 
-const {deploySmartContracts, getDeployedContract} = require('../libs/utils');
-const {expect} = require('chai');
+const { deploySmartContracts } = require('../libs/utils');
 require('chai').should();
-const {timeTravel} = require('./helpers/timeHelper');
+const { timeTravel } = require('./helpers/timeHelper');
 
-const {MaxUint256} = require('@ethersproject/constants');
-const {web3} = require('@openzeppelin/test-environment');
+const { MaxUint256 } = require('@ethersproject/constants');
+const { web3 } = require('@openzeppelin/test-environment');
 
-const {expectEvent, expectRevert} = require('@openzeppelin/test-helpers');
+const { expectEvent, expectRevert } = require('@openzeppelin/test-helpers');
 
 const BlockData = artifacts.require('BlockData');
 // Start test block
@@ -52,18 +51,18 @@ contract.skip('Executor', (accounts) => {
 			customer,
 			web3.utils.fromWei(String(await ethToken.balanceOf(customer)))
 		);
-		await ethToken.approve(executor.address, MaxUint256, {from: customer});
-		await adaToken.approve(executor.address, MaxUint256, {from: customer});
-		await pmaToken.approve(executor.address, MaxUint256, {from: customer});
+		await ethToken.approve(executor.address, MaxUint256, { from: customer });
+		await adaToken.approve(executor.address, MaxUint256, { from: customer });
+		await pmaToken.approve(executor.address, MaxUint256, { from: customer });
 
-		//recurringPP contract
+		// recurringPP contract
 		this.contract = contracts.recurringPP.contract;
-		billingModel.token = contracts.pmaToken.address; //adaToken.address; //contracts.pmaToken.address;
+		billingModel.token = contracts.pmaToken.address; // adaToken.address; //contracts.pmaToken.address;
 	});
 
 	describe('Executor', () => {
 		before(async () => {
-			//crete billing model
+			// crete billing model
 			await this.contract.createBillingModel(
 				billingModel.payee,
 				billingModel.name,
@@ -71,7 +70,7 @@ contract.skip('Executor', (accounts) => {
 				billingModel.token,
 				billingModel.frequency,
 				billingModel.numberOfPayments,
-				{from: merchant}
+				{ from: merchant }
 			);
 
 			this.bmType = await this.contract.getBillingModelIdsByAddress(merchant);
@@ -83,7 +82,7 @@ contract.skip('Executor', (accounts) => {
 		});
 
 		it('should subscribe to model and execute the transafer correctly', async () => {
-			//pmaToken -> pmaToken swap
+			// pmaToken -> pmaToken swap
 			const x = await this.contract.subscribeToBillingModel(1, pmaToken.address, {
 				from: customer
 			});
@@ -92,16 +91,16 @@ contract.skip('Executor', (accounts) => {
 		});
 
 		it('should execute a pullPayment correctly', async () => {
-			//pmaToken -> pmaToken swap
-			const x = await this.contract.subscribeToBillingModel(1, pmaToken.address, {
+			// pmaToken -> pmaToken swap
+			await this.contract.subscribeToBillingModel(1, pmaToken.address, {
 				from: customer
 			});
 
-			//incrase time by frequency
+			// incrase time by frequency
 			await timeTravel(billingModel.frequency + 600);
 
-			//execute the pullPayment
-			const tx = await executor.execute('RecurringPullPayment', 1);
+			// execute the pullPayment
+			await executor.execute('RecurringPullPayment', 1);
 
 			await expectRevert(
 				executor.execute('RecurringPullPayment', 1),

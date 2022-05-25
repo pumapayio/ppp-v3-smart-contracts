@@ -12,4 +12,4 @@ const saveAddress = async (contractName, address, networkId) => {
 	});
 };
 
-module.exports = {saveAddress};
+module.exports = { saveAddress };

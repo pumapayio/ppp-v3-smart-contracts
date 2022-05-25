@@ -13,7 +13,7 @@ async function getPair(factory, token0, token1) {
 }
 
 async function swap(router, sender, token0, token1, amount) {
-	await token0.approve(router.address, amount, {from: sender});
+	await token0.approve(router.address, amount, { from: sender });
 
 	const tx = await router.swapExactTokensForTokens(
 		amount,
@@ -21,7 +21,7 @@ async function swap(router, sender, token0, token1, amount) {
 		[token0.address, token1.address],
 		sender,
 		deadline,
-		{from: sender}
+		{ from: sender }
 	);
 	console.log('tx: ', tx);
 	const tokensReceived = await token1.balanceOf(sender);
@@ -29,15 +29,15 @@ async function swap(router, sender, token0, token1, amount) {
 }
 
 async function addLiquidity(factory, router, sender, token0, token1, amount0, amount1) {
-	//getPair
-	const pair = await getPair(factory, token0.address, token1.address);
+	// getPair
+	await getPair(factory, token0.address, token1.address);
 
-	//approve tokens to router
-	await token0.approve(router.address, amount0, {from: sender});
-	await token1.approve(router.address, amount1, {from: sender});
+	// approve tokens to router
+	await token0.approve(router.address, amount0, { from: sender });
+	await token1.approve(router.address, amount1, { from: sender });
 
-	//add liquidity
-	const tx = await router.addLiquidity(
+	// add liquidity
+	await router.addLiquidity(
 		token0.address,
 		token1.address,
 		amount0,
@@ -50,7 +50,7 @@ async function addLiquidity(factory, router, sender, token0, token1, amount0, am
 			from: sender
 		}
 	);
-	//console.log("tx: ", tx);
+	// console.log("tx: ", tx);
 }
 
 module.exports = {

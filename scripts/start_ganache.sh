@@ -47,7 +47,7 @@ start_ganache() {
   fi
 
   if [ "$FORK" = true ]; then
-    npx ganache-cli --port "$ganache_port" -m "$mnemonic" -e "$balance" -g "$gasPrice" -l "$gasLimit" -a 20 -f "$fork" --chain.chainId "$chain_id" -i "$network_id"
+    npx ganache-cli --port "$ganache_port" -m "$mnemonic" -e "$balance" -g "$gasPrice" -l "$gasLimit" -a 20 -f "$fork"  -b 1 --chain.chainId "$chain_id" -i "$network_id"
   else
     npx ganache-cli --port "$ganache_port" -e "$balance" -g "$gasPrice" -l "$gasLimit" -a 10 --chainId "$chain_id" -i "$network_id" ## -m "$mnemonic"
   fi

@@ -1,7 +1,6 @@
 const fs = require('fs');
 const path = require('path');
 
-const GAS_LIMIT = 85000000;
 const GAS_PRICE = 10; // 10 gwei
 const addresssPath = path.join('test/helpers', 'GasInfo.json');
 
@@ -27,4 +26,4 @@ const getGasCost = async (contractName, operationName, gasUsed) => {
 	});
 };
 
-module.exports = {getGasCost};
+module.exports = { getGasCost };

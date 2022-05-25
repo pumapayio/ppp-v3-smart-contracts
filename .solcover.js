@@ -1,11 +1,12 @@
 module.exports = {
 	skipFiles: ['Migrations.sol', 'mocks'],
 	compileCommand: 'npm run compile',
-	client: require("ganache-cli"),
+	client: require('ganache'),
 	providerOptions: {
-		fork: 'http://localhost:8545',
 		default_balance_ether: 100000,
-		allowUnlimitedContractSize: true
+		allowUnlimitedContractSize: true,
+		chain: 1111,
+		networkId: 1111
 	},
 	mocha: {
 		color: false,

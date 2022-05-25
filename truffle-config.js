@@ -1,3 +1,4 @@
+/* eslint-disable camelcase */
 /**
  * Use this file to configure your truffle project. It's seeded with some
  * common settings for different networks and features like migrations,
@@ -18,9 +19,9 @@
  *
  */
 
-const { mnemonic, BSCSCAN_API_KEY, infuraApiKey } = require("./secrets.json");
-const test_data = require("./secrets.test.json");
-const HDWalletProvider = require("@truffle/hdwallet-provider");
+const { mnemonic, BSCSCAN_API_KEY, infuraApiKey } = require('./secrets.json');
+const test_data = require('./secrets.test.json');
+const HDWalletProvider = require('@truffle/hdwallet-provider');
 
 module.exports = {
 	plugins: ['solidity-coverage', 'truffle-plugin-verify', 'truffle-contract-size'],
@@ -69,7 +70,7 @@ module.exports = {
 		},
 		bsc_test: {
 			provider: () =>
-				new HDWalletProvider(test_data.mnemonic, `https://data-seed-prebsc-1-s1.binance.org:8545/`),
+				new HDWalletProvider(test_data.mnemonic, 'https://data-seed-prebsc-1-s1.binance.org:8545/'),
 			gasPrice: 10000000000, // 10 gwei (in wei)
 			network_id: 97,
 			timeout: 20000000,
@@ -122,7 +123,7 @@ module.exports = {
 		bail: true,
 		reporter: 'eth-gas-reporter',
 		reporterOptions: {
-			excludeContracts: ['Migrations','mocks'],
+			excludeContracts: ['Migrations', 'mocks'],
 			currency: 'USD',
 			noColors: true
 		}

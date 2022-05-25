@@ -1,11 +1,10 @@
 // Load dependencies
-const {web3} = require('@openzeppelin/test-environment');
-const {deployProxy} = require('@openzeppelin/truffle-upgrades');
+const { web3 } = require('@openzeppelin/test-environment');
+const { deployProxy } = require('@openzeppelin/truffle-upgrades');
 
 const {
 	PMATokenAddress,
 	UniswapFactoryAddress,
-	UniswapV2PairAddress,
 	UniswapV2Router02Address,
 	WBNB_ADDRESS,
 	BUSD_ADDRESS
@@ -29,39 +28,39 @@ const RecurringDynamicPullPayment = artifacts.require('RecurringDynamicPullPayme
 
 const oneMillionPMA = web3.utils.toWei('1000000', 'ether');
 
-const deploySmartContracts = async (owner, merchant, customer, user, fundRceiver, network_id) => {
+const deploySmartContracts = async (owner, merchant, customer, user, fundRceiver, networkId) => {
 	// Registry
-	const registry = await deployProxy(Registry, [fundRceiver, 1000], {initializer: 'initialize'});
+	const registry = await deployProxy(Registry, [fundRceiver, 1000], { initializer: 'initialize' });
 
-	//PullPayment Registry
-	const ppRegistry = await deployProxy(PullPaymentRegistry, [], {initializer: 'initialize'});
+	// PullPayment Registry
+	const ppRegistry = await deployProxy(PullPaymentRegistry, [], { initializer: 'initialize' });
 
-	//RecurringPullPayment
+	// RecurringPullPayment
 	const recurringPP = await deployProxy(RecurringPullPayment, [registry.address], {
 		initializer: 'initialize'
 	});
 
-	//RecurringPullPayment
+	// RecurringPullPayment
 	const recurringPPWithFreeTrial = await deployProxy(RecurringPPWithFreeTrial, [registry.address], {
 		initializer: 'initialize'
 	});
 
-	//RecurringPullPaymentWithPaidTrial
+	// RecurringPullPaymentWithPaidTrial
 	const recurringPPWithPaidTrial = await deployProxy(RecurringPPWithPaidTrial, [registry.address], {
 		initializer: 'initialize'
 	});
 
-	//SinglePullPayment
+	// SinglePullPayment
 	const singlePullPayment = await deployProxy(SinglePullPayment, [registry.address], {
 		initializer: 'initialize'
 	});
 
-	//SingleDynamicPullPayment
+	// SingleDynamicPullPayment
 	const singleDynamicPullPayment = await deployProxy(SingleDynamicPullPayment, [registry.address], {
 		initializer: 'initialize'
 	});
 
-	//RecurringDynamicPullPayment
+	// RecurringDynamicPullPayment
 	const recurringDynamicPullPayment = await deployProxy(
 		RecurringDynamicPullPayment,
 		[registry.address],
@@ -70,20 +69,20 @@ const deploySmartContracts = async (owner, merchant, customer, user, fundRceiver
 		}
 	);
 
-	//BEP20 ADA Token
-	const cardano = await Cardano.new({from: owner});
-	//BEP20 ETHEREUM Token
-	const ethereum = await Ethereum.new({from: owner});
+	// BEP20 ADA Token
+	const cardano = await Cardano.new({ from: owner });
+	// BEP20 ETHEREUM Token
+	const ethereum = await Ethereum.new({ from: owner });
 
 	let PMAContract;
 	let wbnb;
 	let busd;
 	let factory;
 	let router;
-	console.log('network ID: ', network_id);
-	if (network_id == '1111') {
-		//BEP20 PMA Token
-		PMAContract = await PMA.new({from: owner});
+	console.log('network ID: ', networkId);
+	if (networkId == '1111') {
+		// BEP20 PMA Token
+		PMAContract = await PMA.new({ from: owner });
 		wbnb = await WBNB.new();
 		busd = await PMA.new();
 		factory = await Factory.new(owner);
@@ -91,26 +90,26 @@ const deploySmartContracts = async (owner, merchant, customer, user, fundRceiver
 
 		// Token balances -> Mint tokens for customer
 		// TODO: Uncomment below once PMA token is in BSC
-		await PMAContract.mint(customer, oneMillionPMA, {from: owner});
-		await PMAContract.mint(user, oneMillionPMA, {from: owner});
+		await PMAContract.mint(customer, oneMillionPMA, { from: owner });
+		await PMAContract.mint(user, oneMillionPMA, { from: owner });
 	} else {
-		PMAContract = await PMA.at(PMATokenAddress[network_id]);
-		wbnb = await WBNB.at(WBNB_ADDRESS[network_id]);
-		busd = await PMA.at(BUSD_ADDRESS[network_id]);
-		factory = await Factory.at(UniswapFactoryAddress[network_id]);
-		router = await RouterV2.at(UniswapFactoryAddress[network_id]);
+		PMAContract = await PMA.at(PMATokenAddress[networkId]);
+		wbnb = await WBNB.at(WBNB_ADDRESS[networkId]);
+		busd = await PMA.at(BUSD_ADDRESS[networkId]);
+		factory = await Factory.at(UniswapFactoryAddress[networkId]);
+		router = await RouterV2.at(UniswapFactoryAddress[networkId]);
 	}
 
 	// Registry Setup
-	await registry.setAddressFor('PMAToken', PMAContract.address, {from: owner});
-	await registry.setAddressFor('WBNBToken', wbnb.address, {from: owner});
+	await registry.setAddressFor('PMAToken', PMAContract.address, { from: owner });
+	await registry.setAddressFor('WBNBToken', wbnb.address, { from: owner });
 
-	if (network_id == '1111') {
+	if (networkId == '1111') {
 		await registry.setAddressFor('UniswapFactory', factory.address);
 		await registry.setAddressFor('UniswapV2Router02', router.address);
 	} else {
-		await registry.setAddressFor('UniswapFactory', UniswapFactoryAddress[network_id]);
-		await registry.setAddressFor('UniswapV2Router02', UniswapV2Router02Address[network_id]);
+		await registry.setAddressFor('UniswapFactory', UniswapFactoryAddress[networkId]);
+		await registry.setAddressFor('UniswapV2Router02', UniswapV2Router02Address[networkId]);
 	}
 
 	await registry.setAddressFor('PullPaymentsRegistry', ppRegistry.address);
@@ -121,11 +120,11 @@ const deploySmartContracts = async (owner, merchant, customer, user, fundRceiver
 	});
 
 	// Register Executor
-	await registry.setAddressFor('Executor', executor.address, {from: owner});
+	await registry.setAddressFor('Executor', executor.address, { from: owner });
 
 	const balance = await PMAContract.balanceOf(customer);
-	//Customer approves executor
-	await PMAContract.approve(executor.address, balance, {from: customer});
+	// Customer approves executor
+	await PMAContract.approve(executor.address, balance, { from: customer });
 
 	// add supported token
 	await registry.addToken(PMAContract.address);
@@ -134,30 +133,30 @@ const deploySmartContracts = async (owner, merchant, customer, user, fundRceiver
 	await registry.addToken(wbnb.address);
 	await registry.addToken(busd.address);
 
-	//Register pullpayment contract on pullPayment registry
+	// Register pullpayment contract on pullPayment registry
 	await ppRegistry.addPullPaymentContract('RecurringPullPayment', recurringPP.address, {
 		from: owner
 	});
 
-	//Register pullpayment with free trial contract on pullPayment registry
+	// Register pullpayment with free trial contract on pullPayment registry
 	await ppRegistry.addPullPaymentContract(
 		'RecurringPPWithFreeTrial',
 		recurringPPWithFreeTrial.address
 	);
 
-	//Register pullpayment with paid trial contract on pullPayment registry
+	// Register pullpayment with paid trial contract on pullPayment registry
 	await ppRegistry.addPullPaymentContract(
 		'recurringPPWithPaidTrial',
 		recurringPPWithPaidTrial.address
 	);
 
-	//Register single dynamic pullpayment contract on pullPayment registry
+	// Register single dynamic pullpayment contract on pullPayment registry
 	await ppRegistry.addPullPaymentContract(
 		'SingleDynamicPullPayment',
 		singleDynamicPullPayment.address
 	);
 
-	//Register Recurring Dynamic pullpayment contract on pullPayment registry
+	// Register Recurring Dynamic pullpayment contract on pullPayment registry
 	await ppRegistry.addPullPaymentContract(
 		'RecurringDynamicPullPayment',
 		recurringDynamicPullPayment.address,
@@ -166,7 +165,7 @@ const deploySmartContracts = async (owner, merchant, customer, user, fundRceiver
 		}
 	);
 
-	//Register single pullpayment contract on pullPayment registry
+	// Register single pullpayment contract on pullPayment registry
 	await ppRegistry.addPullPaymentContract('SinglePullPayment', singlePullPayment.address, {
 		from: owner
 	});

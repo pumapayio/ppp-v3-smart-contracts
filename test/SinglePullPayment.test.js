@@ -1,12 +1,12 @@
 // Load dependencies
-const {deploySmartContracts, getDeployedContract} = require('../libs/utils');
-const {expect} = require('chai');
-const {MaxUint256} = require('@ethersproject/constants');
-const {expectEvent, expectRevert} = require('@openzeppelin/test-helpers');
-const {BN} = require('@openzeppelin/test-helpers/src/setup');
-const {web3} = require('@openzeppelin/test-environment');
-const {ZERO_ADDRESS} = require('@openzeppelin/test-helpers/src/constants');
-const {getGasCost} = require('./helpers/gasCost');
+const { deploySmartContracts } = require('../libs/utils');
+const { expect } = require('chai');
+const { MaxUint256 } = require('@ethersproject/constants');
+const { expectEvent, expectRevert } = require('@openzeppelin/test-helpers');
+const { BN } = require('@openzeppelin/test-helpers/src/setup');
+const { web3 } = require('@openzeppelin/test-environment');
+const { ZERO_ADDRESS } = require('@openzeppelin/test-helpers/src/constants');
+const { getGasCost } = require('./helpers/gasCost');
 
 const BlockData = artifacts.require('BlockData');
 // Start test block
@@ -47,9 +47,9 @@ contract('SinglePullPayment', (accounts) => {
 		ethToken = contracts.ethereum.contract;
 		adaToken = contracts.cardano.contract;
 
-		await ethToken.approve(executor.address, MaxUint256, {from: customer});
-		await adaToken.approve(executor.address, MaxUint256, {from: customer});
-		await pmaToken.approve(executor.address, MaxUint256, {from: customer});
+		await ethToken.approve(executor.address, MaxUint256, { from: customer });
+		await adaToken.approve(executor.address, MaxUint256, { from: customer });
+		await pmaToken.approve(executor.address, MaxUint256, { from: customer });
 
 		this.contract = contracts.singlePullPayment.contract;
 		billingModel.token = contracts.pmaToken.address;
@@ -65,7 +65,7 @@ contract('SinglePullPayment', (accounts) => {
 				billingModel.merchantURL,
 				billingModel.amount,
 				billingModel.token,
-				{from: merchant}
+				{ from: merchant }
 			);
 
 			await getGasCost('SinglePullPayment', 'createBillingModel', tx.receipt.cumulativeGasUsed);
@@ -83,7 +83,7 @@ contract('SinglePullPayment', (accounts) => {
 					billingModel.merchantURL,
 					billingModel.amount,
 					billingModel.token,
-					{from: merchant}
+					{ from: merchant }
 				),
 				'SinglePullPayment: INVALID_PAYEE_ADDRESS'
 			);
@@ -96,7 +96,7 @@ contract('SinglePullPayment', (accounts) => {
 					billingModel.merchantURL,
 					0,
 					billingModel.token,
-					{from: merchant}
+					{ from: merchant }
 				),
 				'SinglePullPayment: INVALID_AMOUNT'
 			);
@@ -111,7 +111,7 @@ contract('SinglePullPayment', (accounts) => {
 				billingModel.merchantURL,
 				billingModel.amount,
 				billingModel.token,
-				{from: merchant}
+				{ from: merchant }
 			);
 			const currentBillingModelId = await this.contract.getCurrentBillingModelId();
 
@@ -132,7 +132,7 @@ contract('SinglePullPayment', (accounts) => {
 				billingModel.merchantURL,
 				billingModel.amount,
 				billingModel.token,
-				{from: merchant}
+				{ from: merchant }
 			);
 			const tx = await this.contract.subscribeToBillingModel(
 				1,
@@ -183,7 +183,7 @@ contract('SinglePullPayment', (accounts) => {
 				billingModel.merchantURL,
 				billingModel.amount,
 				billingModel.token,
-				{from: merchant}
+				{ from: merchant }
 			);
 
 			const currentBillingModelId = await this.contract.getCurrentBillingModelId();
@@ -208,7 +208,7 @@ contract('SinglePullPayment', (accounts) => {
 				billingModel.merchantURL,
 				billingModel.amount,
 				billingModel.token,
-				{from: merchant}
+				{ from: merchant }
 			);
 
 			const tx = await this.contract.editBillingModel(
@@ -336,7 +336,7 @@ contract('SinglePullPayment', (accounts) => {
 				billingModel.merchantURL,
 				billingModel.amount,
 				billingModel.token,
-				{from: merchant}
+				{ from: merchant }
 			);
 		});
 
@@ -354,7 +354,7 @@ contract('SinglePullPayment', (accounts) => {
 			);
 			await expectEvent(tx, 'NewSubscription');
 
-			//execute multiple payments
+			// execute multiple payments
 			await this.contract.subscribeToBillingModel(1, billingModel.token, '', {
 				from: customer
 			});
@@ -374,7 +374,7 @@ contract('SinglePullPayment', (accounts) => {
 				from: customer
 			});
 
-			//sets customer balance to zero
+			// sets customer balance to zero
 			await pmaToken.transfer(merchant, await pmaToken.balanceOf(customer), {
 				from: customer
 			});
@@ -400,8 +400,8 @@ contract('SinglePullPayment', (accounts) => {
 				from: customer
 			});
 
-			//sets executor allowance to zero
-			await pmaToken.approve(executor.address, 0, {from: customer});
+			// sets executor allowance to zero
+			await pmaToken.approve(executor.address, 0, { from: customer });
 
 			await expectRevert(
 				this.contract.subscribeToBillingModel(1, billingModel.token, '', {
@@ -427,7 +427,7 @@ contract('SinglePullPayment', (accounts) => {
 				billingModel.merchantURL,
 				billingModel.amount,
 				billingModel.token,
-				{from: merchant}
+				{ from: merchant }
 			);
 
 			this.bmType = await this.contract.getBillingModelIdsByAddress(merchant);

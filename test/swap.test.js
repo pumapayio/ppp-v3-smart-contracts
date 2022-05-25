@@ -1,18 +1,15 @@
 // Load dependencies
-const {deploySmartContracts, getDeployedContract} = require('../libs/utils');
-const {expect} = require('chai');
+const { deploySmartContracts } = require('../libs/utils');
+const { expect } = require('chai');
 require('chai').should();
-const {addLiquidity, swap, getPair, createPair} = require('./helpers/swap');
+const { addLiquidity } = require('./helpers/swap');
 
-const {MaxUint256} = require('@ethersproject/constants');
+const { MaxUint256 } = require('@ethersproject/constants');
 
-const {expectEvent, expectRevert, ether, BN} = require('@openzeppelin/test-helpers');
-const {MAX_UINT256} = require('@openzeppelin/test-helpers/src/constants');
-const {duration} = require('@openzeppelin/test-helpers/src/time');
-const {getGasCost} = require('./helpers/gasCost');
+const { expectEvent, expectRevert, ether } = require('@openzeppelin/test-helpers');
+const { MAX_UINT256 } = require('@openzeppelin/test-helpers/src/constants');
 
 const BlockData = artifacts.require('BlockData');
-const IPancakePair = artifacts.require('IPancakePair');
 
 // Start test block
 contract.skip('Swap Executor', (accounts) => {
@@ -56,7 +53,7 @@ contract.skip('Swap Executor', (accounts) => {
 		adaToken = contracts.cardano.contract;
 		wbnb = contracts.wbnb.contract;
 
-		//singlePullPayment contract
+		// singlePullPayment contract
 		this.contract = contracts.singlePullPayment.contract;
 		this.registry = contracts.registry.contract;
 		this.factory = contracts.factory.contract;
@@ -65,7 +62,7 @@ contract.skip('Swap Executor', (accounts) => {
 		// mint tokens to user
 		await ethToken.mint(ether('100000000000000000000000'));
 		await adaToken.mint(ether('100000000000000000000000'));
-		await wbnb.deposit({from: owner, value: ether('100000000000')});
+		await wbnb.deposit({ from: owner, value: ether('100000000000') });
 
 		// transfer tokens to user
 		await ethToken.transfer(customer, ether('100000000000000'));
@@ -145,7 +142,7 @@ contract.skip('Swap Executor', (accounts) => {
 				billingModel.merchantURL,
 				billingModel.amount,
 				billingModel.token,
-				{from: merchant}
+				{ from: merchant }
 			);
 
 			const pmaTokenBalBefore = await pmaToken.balanceOf(merchant);
@@ -154,7 +151,7 @@ contract.skip('Swap Executor', (accounts) => {
 
 			const currentBillingModelId = await this.contract.getCurrentBillingModelId();
 
-			await pmaToken.approve(executor.address, MaxUint256, {from: customer});
+			await pmaToken.approve(executor.address, MaxUint256, { from: customer });
 
 			const tx = await this.contract.subscribeToBillingModel(
 				currentBillingModelId,
@@ -199,7 +196,7 @@ contract.skip('Swap Executor', (accounts) => {
 				billingModel.merchantURL,
 				billingModel.amount,
 				billingModel.token,
-				{from: merchant}
+				{ from: merchant }
 			);
 
 			const adaTokenBalBefore = await adaToken.balanceOf(merchant);
@@ -208,7 +205,7 @@ contract.skip('Swap Executor', (accounts) => {
 
 			const currentBillingModelId = await this.contract.getCurrentBillingModelId();
 
-			await wbnb.approve(executor.address, MaxUint256, {from: customer});
+			await wbnb.approve(executor.address, MaxUint256, { from: customer });
 
 			const tx = await this.contract.subscribeToBillingModel(currentBillingModelId, wbnb.address, {
 				from: customer
@@ -249,7 +246,7 @@ contract.skip('Swap Executor', (accounts) => {
 				billingModel.merchantURL,
 				billingModel.amount,
 				billingModel.token,
-				{from: merchant}
+				{ from: merchant }
 			);
 
 			const adaTokenBalBefore = await adaToken.balanceOf(merchant);
@@ -258,7 +255,7 @@ contract.skip('Swap Executor', (accounts) => {
 
 			const currentBillingModelId = await this.contract.getCurrentBillingModelId();
 
-			await adaToken.approve(executor.address, MaxUint256, {from: customer});
+			await adaToken.approve(executor.address, MaxUint256, { from: customer });
 
 			const tx = await this.contract.subscribeToBillingModel(
 				currentBillingModelId,
@@ -293,12 +290,12 @@ contract.skip('Swap Executor', (accounts) => {
 				billingModel.merchantURL,
 				billingModel.amount,
 				billingModel.token,
-				{from: merchant}
+				{ from: merchant }
 			);
 
 			const currentBillingModelId = await this.contract.getCurrentBillingModelId();
 
-			await adaToken.approve(executor.address, MaxUint256, {from: customer});
+			await adaToken.approve(executor.address, MaxUint256, { from: customer });
 			await expectRevert(
 				this.contract.subscribeToBillingModel(currentBillingModelId, adaToken.address, {
 					from: customer
@@ -332,7 +329,7 @@ contract.skip('Swap Executor', (accounts) => {
 				billingModel.merchantURL,
 				billingModel.amount,
 				billingModel.token,
-				{from: merchant}
+				{ from: merchant }
 			);
 
 			const pmaTokenBalBefore = await pmaToken.balanceOf(merchant);
@@ -341,7 +338,7 @@ contract.skip('Swap Executor', (accounts) => {
 
 			const currentBillingModelId = await this.contract.getCurrentBillingModelId();
 
-			await wbnb.approve(executor.address, MaxUint256, {from: customer});
+			await wbnb.approve(executor.address, MaxUint256, { from: customer });
 			const tx = await this.contract.subscribeToBillingModel(currentBillingModelId, wbnb.address, {
 				from: customer
 			});
@@ -382,10 +379,10 @@ contract.skip('Swap Executor', (accounts) => {
 				billingModel.merchantURL,
 				billingModel.amount,
 				billingModel.token,
-				{from: merchant}
+				{ from: merchant }
 			);
 
-			await adaToken.approve(this.router.address, MAX_UINT256, {from: customer});
+			await adaToken.approve(this.router.address, MAX_UINT256, { from: customer });
 
 			const adaTokenBalBefore = await adaToken.balanceOf(merchant);
 			const fundRceiverBalBefore = await adaToken.balanceOf(fundRceiver);
@@ -393,7 +390,7 @@ contract.skip('Swap Executor', (accounts) => {
 
 			const currentBillingModelId = await this.contract.getCurrentBillingModelId();
 
-			await adaToken.approve(executor.address, MaxUint256, {from: customer});
+			await adaToken.approve(executor.address, MaxUint256, { from: customer });
 			const tx = await this.contract.subscribeToBillingModel(
 				currentBillingModelId,
 				adaToken.address,
@@ -442,11 +439,10 @@ contract.skip('Swap Executor', (accounts) => {
 				billingModel.merchantURL,
 				billingModel.amount,
 				billingModel.token,
-				{from: merchant}
+				{ from: merchant }
 			);
 
-			await ethToken.approve(this.router.address, MAX_UINT256, {from: customer});
-			const currentTime = await this.BlockData.getTime();
+			await ethToken.approve(this.router.address, MAX_UINT256, { from: customer });
 			const canSwap = await executor.canSwapFromV2(ethToken.address, ethToken.address);
 			console.log('canswap: ', canSwap);
 
@@ -456,7 +452,7 @@ contract.skip('Swap Executor', (accounts) => {
 
 			const currentBillingModelId = await this.contract.getCurrentBillingModelId();
 
-			await ethToken.approve(executor.address, MaxUint256, {from: customer});
+			await ethToken.approve(executor.address, MaxUint256, { from: customer });
 			const tx = await this.contract.subscribeToBillingModel(
 				currentBillingModelId,
 				ethToken.address,
@@ -500,7 +496,7 @@ contract.skip('Swap Executor', (accounts) => {
 				billingModel.merchantURL,
 				billingModel.amount,
 				billingModel.token,
-				{from: merchant}
+				{ from: merchant }
 			);
 
 			const wbnbTokenBalBefore = await wbnb.balanceOf(merchant);
@@ -509,7 +505,7 @@ contract.skip('Swap Executor', (accounts) => {
 
 			const currentBillingModelId = await this.contract.getCurrentBillingModelId();
 
-			await pmaToken.approve(executor.address, MaxUint256, {from: customer});
+			await pmaToken.approve(executor.address, MaxUint256, { from: customer });
 			const tx = await this.contract.subscribeToBillingModel(
 				currentBillingModelId,
 				pmaToken.address,

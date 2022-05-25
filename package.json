@@ -23,7 +23,10 @@
 		"verify_main": "truffle run verify --network bsc_main",
 		"check_contract_size": "npx truffle run contract-size",
 		"verify_all_contracts_main": "node ./scripts/verifyAllMainnetContracts.js",
-		"verify_all_contracts_test": "node ./scripts/verifyAllTestnetContracts.js"
+		"verify_all_contracts_test": "node ./scripts/verifyAllTestnetContracts.js",
+		"lint": "eslint ./**/*.{js,jsx,ts,tsx}",
+		"lint:fix": "eslint --fix './**/*.{js,jsx,ts,tsx}'",
+		"format": "prettier --write './**/*.{js,jsx,ts,tsx,css,md,json}' --config ./.prettierrc"
 	},
 	"directories": {
 		"test": "test"
@@ -49,7 +52,12 @@
 	"devDependencies": {
 		"@codechecks/client": "^0.1.12",
 		"coveralls": "^3.1.1",
+		"eslint": "^8.16.0",
+		"eslint-config-prettier": "^8.5.0",
+		"eslint-plugin-prettier": "^4.0.0",
 		"eth-gas-reporter": "^0.2.25",
+		"ganache": "^7.2.0",
+		"prettier": "^2.6.2",
 		"truffle-contract-size": "^2.0.1"
 	}
 }

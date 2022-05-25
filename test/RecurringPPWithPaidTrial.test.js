@@ -1,14 +1,14 @@
 // Load dependencies
 
-const {deploySmartContracts, getDeployedContract} = require('../libs/utils');
-const {expect} = require('chai');
-const {timeTravel} = require('./helpers/timeHelper');
-const {MaxUint256} = require('@ethersproject/constants');
-const {expectEvent, expectRevert} = require('@openzeppelin/test-helpers');
-const {BN} = require('@openzeppelin/test-helpers/src/setup');
-const {web3} = require('@openzeppelin/test-environment');
-const {ZERO_ADDRESS} = require('@openzeppelin/test-helpers/src/constants');
-const {getGasCost} = require('./helpers/gasCost');
+const { deploySmartContracts } = require('../libs/utils');
+const { expect } = require('chai');
+const { timeTravel } = require('./helpers/timeHelper');
+const { MaxUint256 } = require('@ethersproject/constants');
+const { expectEvent, expectRevert } = require('@openzeppelin/test-helpers');
+const { BN } = require('@openzeppelin/test-helpers/src/setup');
+const { web3 } = require('@openzeppelin/test-environment');
+const { ZERO_ADDRESS } = require('@openzeppelin/test-helpers/src/constants');
+const { getGasCost } = require('./helpers/gasCost');
 
 const BlockData = artifacts.require('BlockData');
 // Start test block
@@ -24,7 +24,7 @@ contract('RecurringPullPaymentWithPaidTrial', (accounts) => {
 		amount: '15', // web3.utils.toWei("15", "ether"),
 		frequency: 600, // 10 minutes,
 		trialPeriod: 120, // 2 minutes,
-		initialAmount: 5, //initial amount for paid trial
+		initialAmount: 5, // initial amount for paid trial
 		numberOfPayments: 5
 	};
 
@@ -53,13 +53,13 @@ contract('RecurringPullPaymentWithPaidTrial', (accounts) => {
 		ethToken = contracts.ethereum.contract;
 		adaToken = contracts.cardano.contract;
 
-		await ethToken.approve(executor.address, MaxUint256, {from: customer});
-		await adaToken.approve(executor.address, MaxUint256, {from: customer});
-		await pmaToken.approve(executor.address, MaxUint256, {from: customer});
+		await ethToken.approve(executor.address, MaxUint256, { from: customer });
+		await adaToken.approve(executor.address, MaxUint256, { from: customer });
+		await pmaToken.approve(executor.address, MaxUint256, { from: customer });
 
-		//pullPayment registry contract
+		// pullPayment registry contract
 		this.contract = contracts.recurringPPWithPaidTrial.contract;
-		billingModel.token = contracts.pmaToken.address; //adaToken.address;
+		billingModel.token = contracts.pmaToken.address; // adaToken.address;
 	});
 
 	describe('createBillingModel()', () => {
@@ -77,7 +77,7 @@ contract('RecurringPullPaymentWithPaidTrial', (accounts) => {
 				billingModel.trialPeriod,
 				billingModel.initialAmount,
 				billingModel.numberOfPayments,
-				{from: merchant}
+				{ from: merchant }
 			);
 
 			await getGasCost(
@@ -128,7 +128,7 @@ contract('RecurringPullPaymentWithPaidTrial', (accounts) => {
 					billingModel.trialPeriod,
 					billingModel.initialAmount,
 					billingModel.numberOfPayments,
-					{from: merchant}
+					{ from: merchant }
 				),
 				'RecurringPPWithPaidTrial: INVALID_PAYEE_ADDRESS'
 			);
@@ -148,7 +148,7 @@ contract('RecurringPullPaymentWithPaidTrial', (accounts) => {
 					billingModel.trialPeriod,
 					billingModel.initialAmount,
 					billingModel.numberOfPayments,
-					{from: merchant}
+					{ from: merchant }
 				),
 				'RecurringPPWithPaidTrial: UNSUPPORTED_TOKEN'
 			);
@@ -168,7 +168,7 @@ contract('RecurringPullPaymentWithPaidTrial', (accounts) => {
 					billingModel.trialPeriod,
 					billingModel.initialAmount,
 					billingModel.numberOfPayments,
-					{from: merchant}
+					{ from: merchant }
 				),
 				'RecurringPPWithPaidTrial: INVALID_AMOUNT'
 			);
@@ -188,7 +188,7 @@ contract('RecurringPullPaymentWithPaidTrial', (accounts) => {
 					billingModel.trialPeriod,
 					billingModel.initialAmount,
 					billingModel.numberOfPayments,
-					{from: merchant}
+					{ from: merchant }
 				),
 				'RecurringPPWithPaidTrial: INVALID_FREQUENCY'
 			);
@@ -207,7 +207,7 @@ contract('RecurringPullPaymentWithPaidTrial', (accounts) => {
 					0,
 					billingModel.initialAmount,
 					billingModel.numberOfPayments,
-					{from: merchant}
+					{ from: merchant }
 				),
 				'RecurringPPWithPaidTrial: INVALID_TRIAL_PERIOD'
 			);
@@ -227,7 +227,7 @@ contract('RecurringPullPaymentWithPaidTrial', (accounts) => {
 					billingModel.trialPeriod,
 					0,
 					billingModel.numberOfPayments,
-					{from: merchant}
+					{ from: merchant }
 				),
 				'RecurringPPWithPaidTrial: INVALID_INITIAL_AMOUNT'
 			);
@@ -247,7 +247,7 @@ contract('RecurringPullPaymentWithPaidTrial', (accounts) => {
 					billingModel.trialPeriod,
 					billingModel.initialAmount,
 					0,
-					{from: merchant}
+					{ from: merchant }
 				),
 				'RecurringPPWithPaidTrial: INVALID_NO_OF_PAYMENTS'
 			);
@@ -266,7 +266,7 @@ contract('RecurringPullPaymentWithPaidTrial', (accounts) => {
 				billingModel.trialPeriod,
 				billingModel.initialAmount,
 				billingModel.numberOfPayments,
-				{from: merchant}
+				{ from: merchant }
 			);
 			const currentBillingModelId = await this.contract.getCurrentBillingModelId();
 
@@ -294,7 +294,7 @@ contract('RecurringPullPaymentWithPaidTrial', (accounts) => {
 				billingModel.trialPeriod,
 				billingModel.initialAmount,
 				billingModel.numberOfPayments,
-				{from: merchant}
+				{ from: merchant }
 			);
 
 			currentBillingModelId = await this.contract.getCurrentBillingModelId();
@@ -320,7 +320,6 @@ contract('RecurringPullPaymentWithPaidTrial', (accounts) => {
 		it('should subscribe billing model correctly', async () => {
 			const subscritionIds = await this.contract.getSubscriptionIdsByAddress(customer);
 			currentSubscriptionId = await this.contract.getCurrentSubscriptionId();
-			const currentPullPaymentId = await this.contract.getCurrentPullPaymentId();
 
 			const subscription = await this.contract.getSubscription(currentSubscriptionId);
 
@@ -373,10 +372,18 @@ contract('RecurringPullPaymentWithPaidTrial', (accounts) => {
 				`RecurringPullPaymentWithPaidTrial_${currentBillingModelId}_${currentSubscriptionId}`
 			);
 		});
+
+		it('should revert invalid subscriber tries to cancel the subscription', async () => {
+			await expectRevert(
+				this.contract.cancelSubscription(currentSubscriptionId, {
+					from: user
+				}),
+				'RecurringPullPaymentWithPaidTrial: INVALID_CANCELER'
+			);
+		});
 	});
 
 	describe('cancelSubscription()', async () => {
-		let currentBillingModelId;
 		let currentSubscriptionId;
 
 		before('', async () => {
@@ -402,7 +409,7 @@ contract('RecurringPullPaymentWithPaidTrial', (accounts) => {
 			expect(subscription.cancelTimestamp).to.bignumber.be.gt(new BN('0'));
 			expect(subscription.cancelledBy).to.be.eq(customer);
 		});
-		
+
 		it('should cancel subscription by the merchant correctly', async () => {
 			await this.contract.cancelSubscription(2, {
 				from: merchant
@@ -411,35 +418,25 @@ contract('RecurringPullPaymentWithPaidTrial', (accounts) => {
 			const subscription = await this.contract.getSubscription(2);
 			expect(subscription.cancelledBy).to.be.eq(merchant);
 		});
-    
+
 		it('should emit an event after cancelling subscription', async () => {
 			await expectEvent(this.cancelSubscriptionTx, 'SubscriptionCancelled');
 		});
 
 		it('should revert when user tries to cancel subscription with invalid subscription id', async () => {
 			await expectRevert(
-				this.contract.cancelSubscription(0, {from: customer}),
+				this.contract.cancelSubscription(0, { from: customer }),
 				'RecurringPullPaymentWithPaidTrial: INVALID_SUBSCRIPTION_ID'
 			);
 			await expectRevert(
-				this.contract.cancelSubscription(15, {from: customer}),
+				this.contract.cancelSubscription(15, { from: customer }),
 				'RecurringPullPaymentWithPaidTrial: INVALID_SUBSCRIPTION_ID'
-			);
-		});
-
-		it('should revert invalid subscriber tries to cancel the subscription', async () => {
-			await expectRevert(
-				this.contract.cancelSubscription(currentSubscriptionId, {
-					from: user
-				}),
-				'RecurringPullPaymentWithPaidTrial: INVALID_CANCELER'
 			);
 		});
 	});
 
 	describe('editBillingModel()', () => {
 		let currentBillingModelId;
-		let currentSubscriptionId;
 
 		before('', async () => {
 			currentBillingModelId = await this.contract.getCurrentBillingModelId();
@@ -537,7 +534,6 @@ contract('RecurringPullPaymentWithPaidTrial', (accounts) => {
 	describe('executePullPayment()', () => {
 		let currentBillingModelId;
 		let currentSubscriptionId;
-		let currentPullPaymentId;
 
 		before('', async () => {
 			await this.contract.createBillingModel(
@@ -552,7 +548,7 @@ contract('RecurringPullPaymentWithPaidTrial', (accounts) => {
 				billingModel.trialPeriod,
 				billingModel.initialAmount,
 				billingModel.numberOfPayments,
-				{from: merchant}
+				{ from: merchant }
 			);
 
 			currentBillingModelId = await this.contract.getCurrentBillingModelId();
@@ -585,7 +581,7 @@ contract('RecurringPullPaymentWithPaidTrial', (accounts) => {
 
 			currentSubscriptionId = await this.contract.getCurrentSubscriptionId();
 
-			//incrase time to complete paid trial
+			// incrase time to complete paid trial
 			await timeTravel(billingModel.frequency + 120);
 
 			this.executePullPaymentTx = await this.contract.executePullPayment(currentSubscriptionId);
@@ -608,9 +604,9 @@ contract('RecurringPullPaymentWithPaidTrial', (accounts) => {
 			const customerBalBefore = await pmaToken.balanceOf(customer);
 			const merchantBalBefore = await pmaToken.balanceOf(merchant);
 
-			//incrase time to complete paid trial
+			// incrase time to complete paid trial
 			await timeTravel(120);
-			//payment-1
+			// payment-1
 			await this.contract.executePullPayment(currentSubscriptionId);
 
 			await expectRevert(
@@ -618,19 +614,19 @@ contract('RecurringPullPaymentWithPaidTrial', (accounts) => {
 				'RecurringPullPaymentWithPaidTrial: INVALID_EXECUTION_TIME'
 			);
 
-			//incrase time by frequency
+			// incrase time by frequency
 			await timeTravel(billingModel.frequency + 600);
-			//payment-2
+			// payment-2
 			await this.contract.executePullPayment(currentSubscriptionId);
 
-			//incrase time by frequency
+			// incrase time by frequency
 			await timeTravel(billingModel.frequency + 600);
-			//payment-3
+			// payment-3
 			await this.contract.executePullPayment(currentSubscriptionId);
 
-			//incrase time by frequency
+			// incrase time by frequency
 			await timeTravel(billingModel.frequency + 600);
-			//payment-4
+			// payment-4
 			await this.contract.executePullPayment(currentSubscriptionId);
 
 			const customerBalAfter = await pmaToken.balanceOf(customer);
@@ -644,7 +640,7 @@ contract('RecurringPullPaymentWithPaidTrial', (accounts) => {
 			const customerBalBefore = await pmaToken.balanceOf(customer);
 			const merchantBalBefore = await pmaToken.balanceOf(merchant);
 
-			//incrase time by frequency
+			// incrase time by frequency
 			await timeTravel(billingModel.frequency + 600);
 			await expectRevert(
 				this.contract.executePullPayment(currentSubscriptionId),
@@ -662,12 +658,12 @@ contract('RecurringPullPaymentWithPaidTrial', (accounts) => {
 			const customerBalBefore = await pmaToken.balanceOf(customer);
 			const merchantBalBefore = await pmaToken.balanceOf(merchant);
 
-			//Cancel the subscription
+			// Cancel the subscription
 			await this.contract.cancelSubscription(currentSubscriptionId, {
 				from: customer
 			});
 
-			//incrase time to complete paid trial
+			// incrase time to complete paid trial
 			await timeTravel(billingModel.frequency + 120);
 
 			await expectRevert(
@@ -690,7 +686,6 @@ contract('RecurringPullPaymentWithPaidTrial', (accounts) => {
 	describe('Getters', async () => {
 		let currentBillingModelId;
 		let currentSubscriptionId;
-		let currentPullPaymentI;
 		before(async () => {
 			await this.contract.createBillingModel(
 				billingModel.payee,
@@ -704,7 +699,7 @@ contract('RecurringPullPaymentWithPaidTrial', (accounts) => {
 				billingModel.trialPeriod,
 				billingModel.initialAmount,
 				billingModel.numberOfPayments,
-				{from: merchant}
+				{ from: merchant }
 			);
 
 			currentBillingModelId = await this.contract.getCurrentBillingModelId();
@@ -768,7 +763,7 @@ contract('RecurringPullPaymentWithPaidTrial', (accounts) => {
 			});
 			currentSubscriptionId = await this.contract.getCurrentSubscriptionId();
 
-			//incrase time to complete trial period
+			// incrase time to complete trial period
 			await timeTravel(billingModel.frequency + 120);
 			await this.contract.executePullPayment(currentSubscriptionId);
 
@@ -809,7 +804,7 @@ contract('RecurringPullPaymentWithPaidTrial', (accounts) => {
 
 			expect(subscription.isPaidTrialEnded).to.be.eq(false);
 
-			//incrase time to complete trial period
+			// incrase time to complete trial period
 			await timeTravel(billingModel.frequency + 120);
 
 			subscription = await this.contract.getSubscription(currentSubscriptionId, {
