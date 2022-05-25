@@ -1,0 +1,14 @@
+name: test
+on:
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  test:
+    runs-on: [self-hosted, office]
+    steps:
+    - uses: actions/checkout@master
+    - uses: codecov/codecov-action@v2
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
