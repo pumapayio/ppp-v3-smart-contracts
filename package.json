@@ -1,0 +1,55 @@
+{
+	"name": "smart-contracts-template",
+	"version": "1.0.0",
+	"main": "index.js",
+	"repository": "git@github.com:pumapayio/smart-contracts-template.git",
+	"author": "The Pumapay Team",
+	"license": "MIT",
+	"scripts": {
+		"compile": "npx truffle compile",
+		"ganache": "./scripts/start_ganache.sh",
+		"ganache_main": "./scripts/start_ganache.sh true true",
+		"ganache_test": "./scripts/start_ganache.sh true",
+		"test": "./scripts/test.sh",
+		"test-main": "./scripts/main.sh",
+		"coverage": "./scripts/test.sh true",
+		"coverage_badge": "node ./scripts/coverage.js",
+		"migrate": "npx truffle migrate",
+		"migrate_bsc_main": "npx truffle migrate --network=bsc_main",
+		"migrate_bsc_test": "npx truffle migrate --network=bsc_test",
+		"migrate_bsc_pumapay": "npx truffle migrate --network=bsc_pumapay",
+		"unify": "./scripts/unify.sh",
+		"verify_test": "truffle run verify --network bsc_test",
+		"verify_main": "truffle run verify --network bsc_main",
+		"check_contract_size": "npx truffle run contract-size",
+		"verify_all_contracts_main": "node ./scripts/verifyAllMainnetContracts.js",
+		"verify_all_contracts_test": "node ./scripts/verifyAllTestnetContracts.js"
+	},
+	"directories": {
+		"test": "test"
+	},
+	"dependencies": {
+		"@openzeppelin/contracts": "^4.6.0",
+		"@openzeppelin/contracts-upgradeable": "^4.6.0",
+		"@openzeppelin/test-environment": "^0.1.9",
+		"@openzeppelin/test-helpers": "^0.5.15",
+		"@openzeppelin/truffle-upgrades": "^1.15.0",
+		"@truffle/hdwallet-provider": "^2.0.8",
+		"child_process": "^1.0.2",
+		"fs": "^0.0.1-security",
+		"ganache-cli": "^6.12.2",
+		"lcov2badge": "^0.1.2",
+		"path": "^0.12.7",
+		"solidity-coverage": "^0.7.21",
+		"solidity-docgen": "^0.6.0-beta.10",
+		"truffle": "^5.5.15",
+		"truffle-plugin-verify": "^0.5.25",
+		"web3": "^1.7.3"
+	},
+	"devDependencies": {
+		"@codechecks/client": "^0.1.12",
+		"coveralls": "^3.1.1",
+		"eth-gas-reporter": "^0.2.25",
+		"truffle-contract-size": "^2.0.1"
+	}
+}
