@@ -155,7 +155,12 @@ contract RecurringDynamicPullPayment is
 		address payer
 	);
 
-	event SubscriptionCancelled(uint256 indexed billingModelID, uint256 indexed subscriptionID);
+	event SubscriptionCancelled(
+		uint256 indexed billingModelID,
+		uint256 indexed subscriptionID,
+		address payee,
+		address payer
+	);
 
 	event BillingModelEdited(
 		uint256 indexed billingModelID,
@@ -556,7 +561,12 @@ contract RecurringDynamicPullPayment is
 
 		_inactiveSubscriptionsByAddress[msg.sender].push(_subscriptionID);
 
-		emit SubscriptionCancelled(_subscriptionToBillingModel[_subscriptionID], _subscriptionID);
+		emit SubscriptionCancelled(
+			_subscriptionToBillingModel[_subscriptionID],
+			_subscriptionID,
+			bm.payee,
+			subscription.subscriber
+		);
 
 		return _subscriptionID;
 	}

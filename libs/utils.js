@@ -80,7 +80,7 @@ const deploySmartContracts = async (owner, merchant, customer, user, fundRceiver
 	let factory;
 	let router;
 	console.log('network ID: ', networkId);
-	if (networkId == '1111') {
+	if (networkId == '1111' || networkId == '1') {
 		// BEP20 PMA Token
 		PMAContract = await PMA.new({ from: owner });
 		wbnb = await WBNB.new();
@@ -104,7 +104,8 @@ const deploySmartContracts = async (owner, merchant, customer, user, fundRceiver
 	await registry.setAddressFor('PMAToken', PMAContract.address, { from: owner });
 	await registry.setAddressFor('WBNBToken', wbnb.address, { from: owner });
 
-	if (networkId == '1111') {
+	// network id 1 for coverage
+	if (networkId == '1111' || networkId == '1') {
 		await registry.setAddressFor('UniswapFactory', factory.address);
 		await registry.setAddressFor('UniswapV2Router02', router.address);
 	} else {

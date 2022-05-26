@@ -377,11 +377,11 @@ contract('RecurringPPWithFreeTrial', (accounts) => {
 		});
 
 		it('should cancel subscription by the merchant correctly', async () => {
-			await this.contract.cancelSubscription(2, {
+			await this.contract.cancelSubscription(1, {
 				from: merchant
 			});
 
-			const subscription = await this.contract.getSubscription(2);
+			const subscription = await this.contract.getSubscription(1);
 			expect(subscription.cancelledBy).to.be.eq(merchant);
 		});
 

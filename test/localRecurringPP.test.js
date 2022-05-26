@@ -268,7 +268,7 @@ contract('RecurringPullPayment', (accounts) => {
 
 		it('should revert when invalid subscriber tries to cancel the subscription', async () => {
 			await expectRevert(
-				this.contract.cancelSubscription(1, { from: merchant }),
+				this.contract.cancelSubscription(2, { from: user }),
 				'RecurringPullPayment: INVALID_CANCELER'
 			);
 		});

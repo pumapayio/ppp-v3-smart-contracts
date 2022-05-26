@@ -147,7 +147,12 @@ contract RecurringPullPaymentWithPaidTrial is
 		address payee,
 		address payer
 	);
-	event SubscriptionCancelled(uint256 indexed billingModelID, uint256 indexed subscriptionID);
+	event SubscriptionCancelled(
+		uint256 indexed billingModelID,
+		uint256 indexed subscriptionID,
+		address payee,
+		address payer
+	);
 
 	event BillingModelEdited(
 		uint256 indexed billingModelID,
@@ -455,7 +460,12 @@ contract RecurringPullPaymentWithPaidTrial is
 
 		_inactiveSubscriptionsByAddress[msg.sender].push(_subscriptionID);
 
-		emit SubscriptionCancelled(_subscriptionToBillingModel[_subscriptionID], _subscriptionID);
+		emit SubscriptionCancelled(
+			_subscriptionToBillingModel[_subscriptionID],
+			_subscriptionID,
+			bm.payee,
+			bm.subscriptions[_subscriptionID].subscriber
+		);
 
 		return _subscriptionID;
 	}

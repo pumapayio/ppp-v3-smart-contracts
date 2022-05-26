@@ -12,7 +12,7 @@ const { MAX_UINT256 } = require('@openzeppelin/test-helpers/src/constants');
 const BlockData = artifacts.require('BlockData');
 
 // Start test block
-contract.skip('Swap Executor', (accounts) => {
+contract('Swap Executor', (accounts) => {
 	let [owner, merchant, customer, user, fundRceiver] = accounts;
 
 	const billingModel = {
