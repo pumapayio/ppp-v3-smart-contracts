@@ -541,16 +541,22 @@ contract RecurringPullPayment is ReentrancyGuard, IPullPayment, RegistryHelper, 
 		path[0] = _token;
 		path[1] = bmDetails.settlementToken;
 
-		uint256[] memory amountsIn = IUniswapV2Router02(registry.getUniswapRouter()).getAmountsIn(
-			bmDetails.amount,
-			path
-		);
+		uint256 amount;
+		if (_token != bmDetails.settlementToken) {
+			uint256[] memory amountsIn = IUniswapV2Router02(registry.getUniswapRouter()).getAmountsIn(
+				bmDetails.amount,
+				path
+			);
+			amount = amountsIn[0];
+		} else {
+			amount = bmDetails.amount;
+		}
 
 		bm.name = bmDetails.name;
 		bm.payee = bmDetails.payee;
 		bm.settlementAmount = bmDetails.amount;
 		bm.settlementToken = bmDetails.settlementToken;
-		bm.paymentAmount = amountsIn[0];
+		bm.paymentAmount = amount;
 		bm.paymentToken = _token;
 		bm.frequency = bmDetails.frequency;
 		bm.numberOfPayments = bmDetails.numberOfPayments;

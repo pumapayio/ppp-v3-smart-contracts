@@ -198,6 +198,22 @@ contract('Recurring Dynamic PullPayment', (accounts) => {
 				`RecurringDynamicPullPayment_${currentBillingModelId}`
 			);
 		});
+
+		it('should revert when existing reference is passed while creating bm', async () => {
+			const currentBillingModelId = await this.contract.getCurrentBillingModelId();
+
+			await expectRevert(
+				this.contract.createBillingModel(
+					billingModel.payee,
+					1,
+					'',
+					`RecurringDynamicPullPayment_${currentBillingModelId}`,
+					billingModel.merchantURL,
+					{ from: merchant }
+				),
+				'RecurringDynamicPullPayment: REFERENCE_ALREADY_EXISTS'
+			);
+		});
 	});
 
 	describe('subscribeToBillingModel()', () => {
@@ -599,6 +615,29 @@ contract('Recurring Dynamic PullPayment', (accounts) => {
 			);
 			expect(subscription3[0].cancelTimestamp).to.bignumber.be.gt(new BN('0'));
 			expect(subscription3[0].cancelledBy).to.be.eq(customer);
+		});
+
+		it('should revert when invalid reference is passed while subscribing', async () => {
+			currentSubscriptionId = await this.contract.getCurrentSubscriptionId();
+
+			await expectRevert(
+				this.contract.subscribeToBillingModel(
+					currentBillingModelId,
+					name,
+					pmaToken.address,
+					pmaToken.address,
+					15,
+					600,
+					5,
+					100,
+					10,
+					`RecurringDynamicPullPayment_${currentBillingModelId}_${currentSubscriptionId}`,
+					{
+						from: customer
+					}
+				),
+				'RecurringDynamicPullPayment: REFERENCE_ALREADY_EXISTS'
+			);
 		});
 
 		it('should cancel subscription by the merchant correctly', async () => {

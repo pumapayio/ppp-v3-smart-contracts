@@ -202,6 +202,26 @@ contract('RecurringPullPayment', (accounts) => {
 			expect(bmDetails.merchantName).to.be.eq('');
 			expect(bmDetails.uniqueReference).to.be.eq(`RecurringPullPayment_${currentBillingModelId}`);
 		});
+
+		it('should revert when existing reference is passed while creating bm', async () => {
+			const currentBillingModelId = await this.contract.getCurrentBillingModelId();
+
+			await expectRevert(
+				this.contract.createBillingModel(
+					billingModel.payee,
+					billingModel.name,
+					billingModel.merchantName,
+					`RecurringPullPayment_${currentBillingModelId}`,
+					billingModel.merchantURL,
+					billingModel.amount,
+					billingModel.token,
+					billingModel.frequency,
+					billingModel.numberOfPayments,
+					{ from: merchant }
+				),
+				'RecurringPullPayment: REFERENCE_ALREADY_EXISTS'
+			);
+		});
 	});
 
 	describe('subscribeToBillingModel()', () => {
@@ -270,6 +290,22 @@ contract('RecurringPullPayment', (accounts) => {
 			await expectRevert(
 				this.contract.cancelSubscription(2, { from: user }),
 				'RecurringPullPayment: INVALID_CANCELER'
+			);
+		});
+
+		it('should revert when invalid reference is passed while subscribing', async () => {
+			currentSubscriptionId = await this.contract.getCurrentSubscriptionId();
+
+			await expectRevert(
+				this.contract.subscribeToBillingModel(
+					currentBillingModelId,
+					billingModel.token,
+					`RecurringPullPayment_${currentBillingModelId}_${currentSubscriptionId}`,
+					{
+						from: customer
+					}
+				),
+				'RecurringPullPayment: REFERENCE_ALREADY_EXISTS'
 			);
 		});
 	});
@@ -587,6 +623,24 @@ contract('RecurringPullPayment', (accounts) => {
 				expect(bmModel.uniqueReference).to.be.eq(`RecurringPullPayment_${currentBillingModelId}`);
 				expect(bmModel.merchantURL).to.be.eq(billingModel.merchantURL);
 				expect(bmModel.amount).to.bignumber.be.eq(bmModel.amount);
+				expect(bmModel.settlementToken).to.be.eq(billingModel.token);
+				expect(bmModel.frequency).to.bignumber.be.eq(new BN('600'));
+				expect(bmModel.numberOfPayments).to.bignumber.be.eq(new BN('5'));
+				expect(bmModel.creationTime).to.bignumber.be.gt(new BN('0'));
+			});
+
+			it('should get the billing model details correctly for bm creator', async () => {
+				const bmModel = await this.contract.getBillingModel(
+					currentBillingModelId,
+					pmaToken.address
+				);
+
+				expect(bmModel.payee).to.be.eq(merchant);
+				expect(bmModel.name).to.be.eq('some name');
+				expect(bmModel.merchantName).to.be.eq('Merchant');
+				expect(bmModel.uniqueReference).to.be.eq(`RecurringPullPayment_${currentBillingModelId}`);
+				expect(bmModel.merchantURL).to.be.eq(billingModel.merchantURL);
+				expect(bmModel.paymentAmount).to.bignumber.be.eq(bmModel.amount);
 				expect(bmModel.settlementToken).to.be.eq(billingModel.token);
 				expect(bmModel.frequency).to.bignumber.be.eq(new BN('600'));
 				expect(bmModel.numberOfPayments).to.bignumber.be.eq(new BN('5'));

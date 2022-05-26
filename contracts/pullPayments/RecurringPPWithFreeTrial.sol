@@ -549,18 +549,23 @@ contract RecurringPullPaymentWithFreeTrial is
 		path[0] = _token;
 		path[1] = bmDetails.settlementToken;
 
-		uint256[] memory amountsIn = IUniswapV2Router02(registry.getUniswapRouter()).getAmountsIn(
-			bmDetails.amount,
-			path
-		);
-
+		uint256 amount;
+		if (_token != bmDetails.settlementToken) {
+			uint256[] memory amountsIn = IUniswapV2Router02(registry.getUniswapRouter()).getAmountsIn(
+				bmDetails.amount,
+				path
+			);
+			amount = amountsIn[0];
+		} else {
+			amount = bmDetails.amount;
+		}
 		bm.name = bmDetails.name;
 		bm.payee = bmDetails.payee;
 		bm.merchantName = bmDetails.merchantName;
 		bm.uniqueReference = bmDetails.uniqueReference;
 		bm.settlementAmount = bmDetails.amount;
 		bm.settlementToken = bmDetails.settlementToken;
-		bm.paymentAmount = amountsIn[0];
+		bm.paymentAmount = amount;
 		bm.paymentToken = _token;
 		bm.frequency = bmDetails.frequency;
 		bm.trialPeriod = bmDetails.trialPeriod;
