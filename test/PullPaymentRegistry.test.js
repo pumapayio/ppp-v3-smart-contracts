@@ -27,6 +27,7 @@ contract('PullPaymentRegistry', (accounts) => {
 	let pmaToken = {};
 	let ethToken = {};
 	let adaToken = {};
+	let wbnbToken = {};
 	let executor = {};
 
 	before(async () => {
@@ -43,10 +44,11 @@ contract('PullPaymentRegistry', (accounts) => {
 			this.chainId.toString()
 		);
 		executor = contracts.executor.contract;
-
+		this.registry = contracts.registry.contract;
 		pmaToken = contracts.pmaToken.contract;
 		ethToken = contracts.ethereum.contract;
 		adaToken = contracts.cardano.contract;
+		wbnbToken = contracts.wbnb.contract;
 
 		await ethToken.approve(executor.address, MaxUint256, { from: customer });
 		await adaToken.approve(executor.address, MaxUint256, { from: customer });
@@ -181,7 +183,6 @@ contract('PullPaymentRegistry', (accounts) => {
 				let ppAddress = await this.contract.getPPAddressFor(
 					web3.utils.keccak256(web3.utils.encodePacked('pmaToken'))
 				);
-				console.log('ppAddress: ', ppAddress);
 
 				expect(ppAddress).to.be.eq(pmaToken.address);
 				ppAddress = await this.contract.getPPAddressFor(
@@ -192,7 +193,6 @@ contract('PullPaymentRegistry', (accounts) => {
 
 			it('should get a address of pullpayment contract or die with given identifier  correctly', async () => {
 				const ppAddress = await this.contract.getPPAddressForStringOrDie('pmaToken');
-				console.log('ppAddress: ', ppAddress);
 
 				expect(ppAddress).to.be.eq(pmaToken.address);
 				await expectRevert(
@@ -203,12 +203,79 @@ contract('PullPaymentRegistry', (accounts) => {
 
 			it('should get a address of pullpayment contract with given identifier hash correctly', async () => {
 				let ppAddress = await this.contract.getPPAddressForString('pmaToken');
-				console.log('ppAddress: ', ppAddress);
 
 				expect(ppAddress).to.be.eq(pmaToken.address);
 				ppAddress = await this.contract.getPPAddressForString(ZERO_ADDRESS);
 				expect(ppAddress).to.be.eq(ZERO_ADDRESS);
 			});
+		});
+	});
+
+	describe('Registry', () => {
+		describe('removeToken()', () => {
+			it('should remove token correctly', async () => {
+				const isEthSupported = await this.registry.isSupportedToken(ethToken.address);
+				await this.registry.removeToken(ethToken.address, { from: owner });
+				const isEthSupportedAfter = await this.registry.isSupportedToken(ethToken.address);
+
+				expect(isEthSupported).to.be.eq(true);
+				expect(isEthSupportedAfter).to.be.eq(false);
+			});
+		});
+
+		it('updateExecutionFeeReceiver()', async () => {
+			await expectRevert(
+				this.registry.updateExecutionFeeReceiver(ZERO_ADDRESS, { from: owner }),
+				'PullPaymentConfig: INVALID_FEE_RECEIVER'
+			);
+		});
+
+		it('getSupportedTokens()', async () => {
+			const supportedTokens = await this.registry.getSupportedTokens();
+			expect(supportedTokens.length).to.be.gt(0);
+		});
+
+		it('getWBNBToken()', async () => {
+			const wbnbAddress = await this.registry.getWBNBToken();
+			expect(wbnbAddress).to.be.eq(wbnbToken.address);
+		});
+
+		it('getAddressForOrDie()', async () => {
+			await expectRevert(
+				this.registry.getAddressForOrDie(web3.utils.keccak256('temp')),
+				'identifier has no registry entry'
+			);
+		});
+
+		it('getAddressFor()', async () => {
+			const executorAddress = await this.registry.getAddressFor(web3.utils.keccak256('Executor'));
+			expect(executorAddress).to.be.eq(executor.address);
+		});
+
+		it('getAddressForStringOrDie()', async () => {
+			const executorAddress = await this.registry.getAddressForStringOrDie('Executor');
+			expect(executorAddress).to.be.eq(executor.address);
+
+			await expectRevert(
+				this.registry.getAddressForStringOrDie('temp'),
+				'identifier has no registry entry'
+			);
+		});
+
+		it('getAddressForString()', async () => {
+			const executorAddress = await this.registry.getAddressForString('Executor');
+			expect(executorAddress).to.be.eq(executor.address);
+		});
+
+		it('isOneOf()', async () => {
+			let isOneOf = await this.registry.isOneOf(
+				[web3.utils.keccak256('Executor')],
+				executor.address
+			);
+			expect(isOneOf).to.be.eq(true);
+
+			isOneOf = await this.registry.isOneOf([web3.utils.keccak256('temp')], executor.address);
+			expect(isOneOf).to.be.eq(false);
 		});
 	});
 });

@@ -1,5 +1,5 @@
 module.exports = {
-	skipFiles: ['Migrations.sol', 'mocks'],
+	skipFiles: ['Migrations.sol', 'mocks', 'common/libraries'],
 	compileCommand: 'npm run compile',
 	client: require('ganache'),
 	providerOptions: {

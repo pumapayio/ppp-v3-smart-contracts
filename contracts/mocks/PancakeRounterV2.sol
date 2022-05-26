@@ -415,7 +415,7 @@ library PancakeLibrary {
 		(address token0, address token1) = sortTokens(tokenA, tokenB);
 		pair = Create2.computeAddress(
 			keccak256(abi.encodePacked(token0, token1)),
-			hex'8d11f1e4299fcbd134f22f158d733c967df8851915ff4b8ad0256f01372ade0b', // init code hash
+			hex'81aefc7a1c7d32dc58151165028e1eac96a2fd221d5b0fe0c0522b0e97f61dfd', // init code hash
 			factory
 		);
 	}

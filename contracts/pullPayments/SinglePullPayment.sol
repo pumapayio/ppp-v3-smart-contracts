@@ -419,16 +419,22 @@ contract SinglePullPayment is
 		address[] memory path = new address[](2);
 		path[0] = _token;
 		path[1] = bmDetails.settlementToken;
+		uint256 amount;
+		if (_token != bmDetails.settlementToken) {
+			uint256[] memory amountsIn = IUniswapV2Router02(registry.getUniswapRouter()).getAmountsIn(
+				bmDetails.amount,
+				path
+			);
+			amount = amountsIn[0];
+		} else {
+			amount = bmDetails.amount;
+		}
 
-		uint256[] memory amountsIn = IUniswapV2Router02(registry.getUniswapRouter()).getAmountsIn(
-			bmDetails.amount,
-			path
-		);
-
+		bm.name = bmDetails.name;
 		bm.payee = bmDetails.payee;
 		bm.settlementAmount = bmDetails.amount;
 		bm.settlementToken = bmDetails.settlementToken;
-		bm.paymentAmount = amountsIn[0];
+		bm.paymentAmount = amount;
 		bm.paymentToken = _token;
 		bm.creationTime = bmDetails.creationTime;
 		bm.merchantName = bmDetails.merchantName;

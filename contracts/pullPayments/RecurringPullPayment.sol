@@ -546,6 +546,7 @@ contract RecurringPullPayment is ReentrancyGuard, IPullPayment, RegistryHelper, 
 			path
 		);
 
+		bm.name = bmDetails.name;
 		bm.payee = bmDetails.payee;
 		bm.settlementAmount = bmDetails.amount;
 		bm.settlementToken = bmDetails.settlementToken;

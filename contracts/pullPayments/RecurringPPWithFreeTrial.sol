@@ -554,6 +554,7 @@ contract RecurringPullPaymentWithFreeTrial is
 			path
 		);
 
+		bm.name = bmDetails.name;
 		bm.payee = bmDetails.payee;
 		bm.merchantName = bmDetails.merchantName;
 		bm.uniqueReference = bmDetails.uniqueReference;

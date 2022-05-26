@@ -172,6 +172,33 @@ contract('SinglePullPayment', (accounts) => {
 				}),
 				'SinglePullPayment: INVALID_BILLING_MODEL_ID'
 			);
+			await expectRevert(
+				this.contract.createBillingModel(
+					billingModel.payee,
+					billingModel.name,
+					billingModel.merchantName,
+					billingModel.reference,
+					billingModel.merchantURL,
+					billingModel.amount,
+					ZERO_ADDRESS,
+					{ from: merchant }
+				),
+				'SinglePullPayment: UNSUPPORTED_TOKEN'
+			);
+
+			await expectRevert(
+				this.contract.createBillingModel(
+					billingModel.payee,
+					billingModel.name,
+					billingModel.merchantName,
+					billingModel.reference,
+					billingModel.merchantURL,
+					billingModel.amount,
+					billingModel.token,
+					{ from: merchant }
+				),
+				'SinglePullPayment: REFERENCE_ALREADY_EXISTS'
+			);
 		});
 
 		it('should subscribe to billing model with empty reference', async () => {
@@ -192,10 +219,24 @@ contract('SinglePullPayment', (accounts) => {
 			});
 
 			const currentSubscriptionId = await this.contract.getCurrentSubscriptionId();
+			const pullPaymentId = await this.contract.getCurrentPullPaymentId();
+			expect(pullPaymentId).to.bignumber.be.eq(currentSubscriptionId);
 
 			const subscriptionDetails = await this.contract.getSubscription(currentSubscriptionId);
 			expect(subscriptionDetails.uniqueReference).to.be.eq(
 				`SinglePullPayment_${currentBillingModelId}_${currentSubscriptionId}`
+			);
+
+			await expectRevert(
+				this.contract.subscribeToBillingModel(
+					currentBillingModelId,
+					billingModel.token,
+					`SinglePullPayment_${currentBillingModelId}_${currentSubscriptionId}`,
+					{
+						from: customer
+					}
+				),
+				'SinglePullPayment: REFERENCE_ALREADY_EXISTS'
 			);
 		});
 
@@ -488,6 +529,29 @@ contract('SinglePullPayment', (accounts) => {
 			);
 		});
 
+		it('should get swappable billing model correctly', async () => {
+			const bm = await this.contract.getBillingModel(1, pmaToken.address);
+			console.log('billing model: ', bm);
+
+			expect(bm.payee).to.be.eq(merchant);
+			expect(bm.name).to.be.eq(billingModel.name);
+			expect(bm.merchantName).to.be.eq('Merchant');
+			expect(bm.uniqueReference).to.be.eq('Ref1');
+			expect(bm.paymentAmount).to.bignumber.be.eq(new BN('15'));
+			expect(bm.settlementToken).to.be.eq(billingModel.token);
+			expect(bm.creationTime).to.bignumber.be.gt(new BN('0'));
+			expect(bm.merchantURL).to.be.eq(billingModel.merchantURL);
+
+			await expectRevert(
+				this.contract.getBillingModel(5),
+				'SinglePullPayment: INVALID_BILLING_MODEL_ID'
+			);
+			await expectRevert(
+				this.contract.getBillingModel(0),
+				'SinglePullPayment: INVALID_BILLING_MODEL_ID'
+			);
+		});
+
 		it('should get pullPayment correctly', async () => {
 			await this.contract.subscribeToBillingModel(1, pmaToken.address, 'subscriptionRef1', {
 				from: customer
@@ -513,6 +577,14 @@ contract('SinglePullPayment', (accounts) => {
 				this.contract.getPullPayment(5),
 				'RecurringPullPayment: INVALID_PULLPAYMENT_ID'
 			);
+		});
+
+		it('should get version number correcntly', async () => {
+			const version = await this.contract.getVersionNumber();
+			expect(version[0]).to.bignumber.be.eq(new BN('1'));
+			expect(version[1]).to.bignumber.be.eq(new BN('0'));
+			expect(version[2]).to.bignumber.be.eq(new BN('0'));
+			expect(version[3]).to.bignumber.be.eq(new BN('0'));
 		});
 	});
 });

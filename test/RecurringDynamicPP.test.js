@@ -1456,5 +1456,15 @@ contract('Recurring Dynamic PullPayment', (accounts) => {
 				'RecurringDynamicPullPayment: INVALID_PULLPAYMENT_ID'
 			);
 		});
+
+		describe('getVersionNumber()', () => {
+			it('should get version number correcntly', async () => {
+				const version = await this.contract.getVersionNumber();
+				expect(version[0]).to.bignumber.be.eq(new BN('1'));
+				expect(version[1]).to.bignumber.be.eq(new BN('0'));
+				expect(version[2]).to.bignumber.be.eq(new BN('0'));
+				expect(version[3]).to.bignumber.be.eq(new BN('0'));
+			});
+		});
 	});
 });

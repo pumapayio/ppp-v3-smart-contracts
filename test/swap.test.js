@@ -12,7 +12,7 @@ const { MAX_UINT256 } = require('@openzeppelin/test-helpers/src/constants');
 const BlockData = artifacts.require('BlockData');
 
 // Start test block
-contract('Swap Executor', (accounts) => {
+contract.skip('Swap Executor', (accounts) => {
 	let [owner, merchant, customer, user, fundRceiver] = accounts;
 
 	const billingModel = {
@@ -150,7 +150,6 @@ contract('Swap Executor', (accounts) => {
 			const userBalBefore = await pmaToken.balanceOf(customer);
 
 			const currentBillingModelId = await this.contract.getCurrentBillingModelId();
-
 			await pmaToken.approve(executor.address, MaxUint256, { from: customer });
 
 			const tx = await this.contract.subscribeToBillingModel(
