@@ -114,9 +114,7 @@ contract RecurringPullPayment is ReentrancyGuard, IPullPayment, RegistryHelper, 
 	/**
 	 * @dev This method initializes registry helper to be able to access method of core registry
 	 */
-	constructor(address _registryAddress) {
-		_init_registryHelper(_registryAddress);
-	}
+	constructor(address _registryAddress) RegistryHelper(_registryAddress) {}
 
 	/*
    	=======================================================================

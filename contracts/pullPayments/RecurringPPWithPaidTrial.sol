@@ -122,9 +122,7 @@ contract RecurringPullPaymentWithPaidTrial is
 	/**
 	 * @dev This method initializes registry helper to be able to access method of core registry
 	 */
-	constructor(address registryAddress) {
-		_init_registryHelper(registryAddress);
-	}
+	constructor(address registryAddress) RegistryHelper(registryAddress) {}
 
 	/*
    	=======================================================================

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import '@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol';
+import '@openzeppelin/contracts/access/Ownable.sol';
 import './interfaces/IRegistry.sol';
 
 /**
@@ -9,7 +9,7 @@ import './interfaces/IRegistry.sol';
  * @author The Pumapay Team
  * @notice This contract helps to initialize the core registry contract in parent contracts.
  */
-contract RegistryHelper is OwnableUpgradeable {
+contract RegistryHelper is Ownable {
 	/*
    	=======================================================================
    	======================== Public variatibles ===========================
@@ -27,8 +27,7 @@ contract RegistryHelper is OwnableUpgradeable {
 	 * @notice Used in place of the constructor to allow the contract to be upgradable via proxy.
 	 * @dev initializes the core registry with registry address
 	 */
-	function _init_registryHelper(address _registryAddress) internal virtual onlyInitializing {
-		__Ownable_init();
+	constructor(address _registryAddress) {
 		setRegistry(_registryAddress);
 	}
 
