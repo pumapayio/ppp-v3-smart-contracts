@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import '@openzeppelin/contracts-upgradeable/utils/CountersUpgradeable.sol';
-import '@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol';
-import '@openzeppelin/contracts-upgradeable/utils/StringsUpgradeable.sol';
+import '@openzeppelin/contracts/utils/Counters.sol';
+import '@openzeppelin/contracts/security/ReentrancyGuard.sol';
+import '@openzeppelin/contracts/utils/Strings.sol';
 import '../common/RegistryHelper.sol';
 
 import './interfaces/ISingleDynamicPullPayment.sol';
@@ -20,11 +20,11 @@ import '../common/interfaces/IExecutor.sol';
  */
 contract SingleDynamicPullPayment is
 	RegistryHelper,
-	ReentrancyGuardUpgradeable,
+	ReentrancyGuard,
 	ISingleDynamicPullPayment,
 	IVersionedContract
 {
-	using CountersUpgradeable for CountersUpgradeable.Counter;
+	using Counters for Counters.Counter;
 
 	/*
    	=======================================================================
@@ -61,11 +61,11 @@ contract SingleDynamicPullPayment is
    	=======================================================================
  	*/
 	/// @dev The couter for billing model ids
-	CountersUpgradeable.Counter private _billingModelIDs;
+	Counters.Counter private _billingModelIDs;
 	/// @dev The couter for subscription ids
-	CountersUpgradeable.Counter private _subscriptionIDs;
+	Counters.Counter private _subscriptionIDs;
 	/// @dev The couter for pullpayment ids
-	CountersUpgradeable.Counter private _pullPaymentIDs;
+	Counters.Counter private _pullPaymentIDs;
 
 	/// @notice Mappings by ids
 
@@ -98,11 +98,9 @@ contract SingleDynamicPullPayment is
    	=======================================================================
  	*/
 	/**
-	 * @notice Used in place of the constructor to allow the contract to be upgradable via proxy.
 	 * @dev This method initializes registry helper to be able to access method of core registry
 	 */
-	function initialize(address registryAddress) external initializer {
-		__ReentrancyGuard_init();
+	constructor(address registryAddress) {
 		_init_registryHelper(registryAddress);
 	}
 
@@ -188,10 +186,7 @@ contract SingleDynamicPullPayment is
 			bm.uniqueReference = _reference;
 		} else {
 			string memory newReference = string(
-				abi.encodePacked(
-					'SingleDynamicPullPayment_',
-					StringsUpgradeable.toString(newBillingModelID)
-				)
+				abi.encodePacked('SingleDynamicPullPayment_', Strings.toString(newBillingModelID))
 			);
 			_bmReferences[newReference] = newBillingModelID;
 			bm.uniqueReference = newReference;
@@ -277,9 +272,9 @@ contract SingleDynamicPullPayment is
 			string memory newReference = string(
 				abi.encodePacked(
 					'SingleDynamicPullPayment_',
-					StringsUpgradeable.toString(_billingModelID),
+					Strings.toString(_billingModelID),
 					'_',
-					StringsUpgradeable.toString(newSubscriptionID)
+					Strings.toString(newSubscriptionID)
 				)
 			);
 			_subscriptionReferences[newReference] = newSubscriptionID;

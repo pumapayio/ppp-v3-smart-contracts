@@ -47,7 +47,7 @@ library TransferHelper {
 	}
 
 	function safeTransferETH(address to, uint256 value) internal {
-		(bool success, ) = to.call{value: value}(new bytes(0));
+		(bool success, ) = to.call{ value: value }(new bytes(0));
 		require(success, 'TransferHelper: ETH_TRANSFER_FAILED');
 	}
 }
@@ -650,7 +650,7 @@ contract PancakeRouter is IPancakeRouter02 {
 		);
 		address pair = PancakeLibrary.pairFor(factory, token, WETH);
 		TransferHelper.safeTransferFrom(token, msg.sender, pair, amountToken);
-		IWETH(WETH).deposit{value: amountETH}();
+		IWETH(WETH).deposit{ value: amountETH }();
 		assert(IWETH(WETH).transfer(pair, amountETH));
 		liquidity = IPancakePair(pair).mint(to);
 		// refund dust eth, if any
@@ -873,7 +873,7 @@ contract PancakeRouter is IPancakeRouter02 {
 			amounts[amounts.length - 1] >= amountOutMin,
 			'PancakeRouter: INSUFFICIENT_OUTPUT_AMOUNT'
 		);
-		IWETH(WETH).deposit{value: amounts[0]}();
+		IWETH(WETH).deposit{ value: amounts[0] }();
 		assert(IWETH(WETH).transfer(PancakeLibrary.pairFor(factory, path[0], path[1]), amounts[0]));
 		_swap(amounts, path, to);
 	}
@@ -932,7 +932,7 @@ contract PancakeRouter is IPancakeRouter02 {
 		require(path[0] == WETH, 'PancakeRouter: INVALID_PATH');
 		amounts = PancakeLibrary.getAmountsIn(factory, amountOut, path);
 		require(amounts[0] <= msg.value, 'PancakeRouter: EXCESSIVE_INPUT_AMOUNT');
-		IWETH(WETH).deposit{value: amounts[0]}();
+		IWETH(WETH).deposit{ value: amounts[0] }();
 		assert(IWETH(WETH).transfer(PancakeLibrary.pairFor(factory, path[0], path[1]), amounts[0]));
 		_swap(amounts, path, to);
 		// refund dust eth, if any
@@ -994,7 +994,7 @@ contract PancakeRouter is IPancakeRouter02 {
 	) external payable virtual override ensure(deadline) {
 		require(path[0] == WETH, 'PancakeRouter: INVALID_PATH');
 		uint256 amountIn = msg.value;
-		IWETH(WETH).deposit{value: amountIn}();
+		IWETH(WETH).deposit{ value: amountIn }();
 		assert(IWETH(WETH).transfer(PancakeLibrary.pairFor(factory, path[0], path[1]), amountIn));
 		uint256 balanceBefore = IERC20(path[path.length - 1]).balanceOf(to);
 		_swapSupportingFeeOnTransferTokens(path, to);

@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import '@openzeppelin/contracts-upgradeable/utils/CountersUpgradeable.sol';
-import '@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol';
-import '@openzeppelin/contracts-upgradeable/utils/StringsUpgradeable.sol';
+import '@openzeppelin/contracts/utils/Counters.sol';
+import '@openzeppelin/contracts/security/ReentrancyGuard.sol';
+import '@openzeppelin/contracts/utils/Strings.sol';
 import '../common/RegistryHelper.sol';
 
 import './interfaces/IPullPayment.sol';
@@ -18,13 +18,8 @@ import '../common/interfaces/IUniswapV2Router02.sol';
  * @notice This billing model allows merchants to charge customers a fixed amount for a pre-defined interval of time and duration.
  * A typical example is a monthly payment of $5.00 for 12 months.
  */
-contract RecurringPullPayment is
-	ReentrancyGuardUpgradeable,
-	IPullPayment,
-	RegistryHelper,
-	IVersionedContract
-{
-	using CountersUpgradeable for CountersUpgradeable.Counter;
+contract RecurringPullPayment is ReentrancyGuard, IPullPayment, RegistryHelper, IVersionedContract {
+	using Counters for Counters.Counter;
 
 	/*
    	=======================================================================
@@ -78,11 +73,11 @@ contract RecurringPullPayment is
    	=======================================================================
  	*/
 	/// @dev The couter for billing model ids
-	CountersUpgradeable.Counter private _billingModelIDs;
+	Counters.Counter private _billingModelIDs;
 	/// @dev The couter for subscription ids
-	CountersUpgradeable.Counter private _subscriptionIDs;
+	Counters.Counter private _subscriptionIDs;
 	/// @dev The couter for pullpayment ids
-	CountersUpgradeable.Counter private _pullPaymentIDs;
+	Counters.Counter private _pullPaymentIDs;
 
 	/// @notice Mappings by ids
 
@@ -117,11 +112,9 @@ contract RecurringPullPayment is
    	=======================================================================
  	*/
 	/**
-	 * @notice Used in place of the constructor to allow the contract to be upgradable via proxy.
 	 * @dev This method initializes registry helper to be able to access method of core registry
 	 */
-	function initialize(address _registryAddress) external virtual initializer {
-		__ReentrancyGuard_init();
+	constructor(address _registryAddress) {
 		_init_registryHelper(_registryAddress);
 	}
 
@@ -240,7 +233,7 @@ contract RecurringPullPayment is
 			bm.uniqueReference = _reference;
 		} else {
 			string memory newReference = string(
-				abi.encodePacked('RecurringPullPayment_', StringsUpgradeable.toString(newBillingModelID))
+				abi.encodePacked('RecurringPullPayment_', Strings.toString(newBillingModelID))
 			);
 			_bmReferences[newReference] = newBillingModelID;
 			bm.uniqueReference = newReference;
@@ -299,9 +292,9 @@ contract RecurringPullPayment is
 			string memory newReference = string(
 				abi.encodePacked(
 					'RecurringPullPayment_',
-					StringsUpgradeable.toString(_billingModelID),
+					Strings.toString(_billingModelID),
 					'_',
-					StringsUpgradeable.toString(newSubscriptionID)
+					Strings.toString(newSubscriptionID)
 				)
 			);
 			_subscriptionReferences[newReference] = newSubscriptionID;
