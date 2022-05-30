@@ -3,17 +3,23 @@ on:
   pull_request:
     branches:
       - master
-
 jobs:
   test:
     runs-on: [self-hosted, office]
     steps:
     - uses: actions/checkout@master
+    - uses: actions/setup-node@v3
+    - name: run coverage
+      run:  yarn coverage
+    - name: generage coverage badge
+      run: yarn coverage_badge
     - uses: codecov/codecov-action@v2
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
-        files: ./coverage, ./coverage_badge.svg # optional
+        directory: ./coverage/
+        files: ./coverage.json, ./coverage_badge.svg # optional
         flags: unittests # optional
         name: codecov-umbrella # optional
         fail_ci_if_error: true # optional (default = false)
         verbose: true # optional (default = false)
+    
