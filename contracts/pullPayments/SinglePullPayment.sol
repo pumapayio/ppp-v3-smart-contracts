@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import '@openzeppelin/contracts-upgradeable/utils/CountersUpgradeable.sol';
-import '@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol';
-import '@openzeppelin/contracts-upgradeable/utils/StringsUpgradeable.sol';
+import '@openzeppelin/contracts/utils/Counters.sol';
+import '@openzeppelin/contracts/security/ReentrancyGuard.sol';
+import '@openzeppelin/contracts/utils/Strings.sol';
 import '../common/RegistryHelper.sol';
 
 import './interfaces/ISinglePullPayment.sol';
@@ -19,12 +19,12 @@ import '../common/interfaces/IUniswapV2Router02.sol';
  * A typical example is a one-time payment of $5.00.
  */
 contract SinglePullPayment is
-	ReentrancyGuardUpgradeable,
+	ReentrancyGuard,
 	RegistryHelper,
 	ISinglePullPayment,
 	IVersionedContract
 {
-	using CountersUpgradeable for CountersUpgradeable.Counter;
+	using Counters for Counters.Counter;
 
 	/*
    	=======================================================================
@@ -67,11 +67,11 @@ contract SinglePullPayment is
  	*/
 
 	/// @dev The couter for billing model ids
-	CountersUpgradeable.Counter private _billingModelIDs;
+	Counters.Counter private _billingModelIDs;
 	/// @dev The couter for subscription ids
-	CountersUpgradeable.Counter private _subscriptionIDs;
+	Counters.Counter private _subscriptionIDs;
 	/// @dev The couter for pullpayment ids
-	CountersUpgradeable.Counter private _pullPaymentIDs;
+	Counters.Counter private _pullPaymentIDs;
 
 	/// @notice Mappings by ids
 
@@ -106,13 +106,9 @@ contract SinglePullPayment is
    	=======================================================================
  	*/
 	/**
-	 * @notice Used in place of the constructor to allow the contract to be upgradable via proxy.
 	 * @dev This method initializes registry helper to be able to access method of core registry
 	 */
-	function initialize(address registryAddress) external virtual initializer {
-		__ReentrancyGuard_init();
-		_init_registryHelper(registryAddress);
-	}
+	constructor(address registryAddress) RegistryHelper(registryAddress) {}
 
 	/*
    	=======================================================================
@@ -211,7 +207,7 @@ contract SinglePullPayment is
 			_billingModels[newBillingModelID].uniqueReference = _reference;
 		} else {
 			string memory newReference = string(
-				abi.encodePacked('SinglePullPayment_', StringsUpgradeable.toString(newBillingModelID))
+				abi.encodePacked('SinglePullPayment_', Strings.toString(newBillingModelID))
 			);
 			_bmReferences[newReference] = newBillingModelID;
 			_billingModels[newBillingModelID].uniqueReference = newReference;
@@ -279,9 +275,9 @@ contract SinglePullPayment is
 			string memory newReference = string(
 				abi.encodePacked(
 					'SinglePullPayment_',
-					StringsUpgradeable.toString(_billingModelID),
+					Strings.toString(_billingModelID),
 					'_',
-					StringsUpgradeable.toString(newSubscriptionID)
+					Strings.toString(newSubscriptionID)
 				)
 			);
 			_subscriptionReferences[newReference] = newSubscriptionID;
@@ -423,16 +419,22 @@ contract SinglePullPayment is
 		address[] memory path = new address[](2);
 		path[0] = _token;
 		path[1] = bmDetails.settlementToken;
+		uint256 amount;
+		if (_token != bmDetails.settlementToken) {
+			uint256[] memory amountsIn = IUniswapV2Router02(registry.getUniswapRouter()).getAmountsIn(
+				bmDetails.amount,
+				path
+			);
+			amount = amountsIn[0];
+		} else {
+			amount = bmDetails.amount;
+		}
 
-		uint256[] memory amountsIn = IUniswapV2Router02(registry.getUniswapRouter()).getAmountsIn(
-			bmDetails.amount,
-			path
-		);
-
+		bm.name = bmDetails.name;
 		bm.payee = bmDetails.payee;
 		bm.settlementAmount = bmDetails.amount;
 		bm.settlementToken = bmDetails.settlementToken;
-		bm.paymentAmount = amountsIn[0];
+		bm.paymentAmount = amount;
 		bm.paymentToken = _token;
 		bm.creationTime = bmDetails.creationTime;
 		bm.merchantName = bmDetails.merchantName;

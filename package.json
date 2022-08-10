@@ -6,7 +6,7 @@
 	"author": "The Pumapay Team",
 	"license": "MIT",
 	"scripts": {
-		"compile": "npx oz compile",
+		"compile": "npx truffle compile",
 		"ganache": "./scripts/start_ganache.sh",
 		"ganache_main": "./scripts/start_ganache.sh true true",
 		"ganache_test": "./scripts/start_ganache.sh true",
@@ -26,13 +26,12 @@
 		"verify_all_contracts_test": "node ./scripts/verifyAllTestnetContracts.js",
 		"lint": "eslint ./**/*.{js,jsx,ts,tsx}",
 		"lint:fix": "eslint --fix './**/*.{js,jsx,ts,tsx}'",
-		"format": "prettier --write './**/*.{js,jsx,ts,tsx,css,md,json}' --config ./.prettierrc"
+		"format": "prettier --write './**/*.{js,jsx,ts,tsx,css,md,json,sol}' --config ./.prettierrc"
 	},
 	"directories": {
 		"test": "test"
 	},
 	"dependencies": {
-		"@openzeppelin/cli": "^2.8.2",
 		"@openzeppelin/contracts": "^4.6.0",
 		"@openzeppelin/contracts-upgradeable": "^4.6.0",
 		"@openzeppelin/test-environment": "^0.1.9",
@@ -44,7 +43,6 @@
 		"fs": "^0.0.1-security",
 		"ganache-cli": "^6.12.2",
 		"lcov2badge": "^0.1.2",
-		"mocha": "^10.0.0",
 		"path": "^0.12.7",
 		"solidity-coverage": "^0.7.21",
 		"solidity-docgen": "^0.6.0-beta.10",
@@ -62,7 +60,9 @@
 		"ganache": "^7.2.0",
 		"husky": "^8.0.1",
 		"prettier": "^2.6.2",
-		"truffle-contract-size": "^2.0.1"
+		"prettier-plugin-solidity": "^1.0.0-beta.19",
+		"truffle-contract-size": "^2.0.1",
+		"truffle-flattener": "^1.6.0"
 	},
 	"husky": {
 		"hooks": {

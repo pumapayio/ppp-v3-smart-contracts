@@ -1,40 +1,40 @@
 {
 	"RecurringPullPayment": {
-		"createBillingModel": "0.00335846",
-		"subscribeToBillingModel": "0.0063135",
-		"cancelSubscription": "0.00116298",
-		"editBillingModel": "0.00078987",
-		"executePullPayment": "0.00305858"
+		"createBillingModel": "0.00332515",
+		"subscribeToBillingModel": "0.00625261",
+		"cancelSubscription": "0.00113467",
+		"editBillingModel": "0.00076099",
+		"executePullPayment": "0.00302527"
 	},
 	"RecurringDynamicPullPayment": {
-		"createBillingModel": "0.00242548",
-		"subscribeToBillingModel": "0.00851693",
-		"cancelSubscription": "0.00117779",
-		"editBillingModel": "0.0005393",
-		"executePullPayment": "0.0027631"
+		"createBillingModel": "0.0023966",
+		"subscribeToBillingModel": "0.00845153",
+		"cancelSubscription": "0.00114948",
+		"editBillingModel": "0.0005106",
+		"executePullPayment": "0.00270242"
 	},
 	"RecurringPPWithPaidTrial": {
-		"createBillingModel": "0.00438178",
-		"subscribeToBillingModel": "0.00415271",
-		"cancelSubscription": "0.0011632",
-		"editBillingModel": "0.00040967",
-		"executePullPayment": "0.00333896"
+		"createBillingModel": "0.00434845",
+		"subscribeToBillingModel": "0.00409182",
+		"cancelSubscription": "0.00113489",
+		"editBillingModel": "0.00039523",
+		"executePullPayment": "0.00327828"
 	},
 	"RecurringPullPaymentWithFreeTrial": {
-		"createBillingModel": "0.00417396",
-		"subscribeToBillingModel": "0.00302997",
-		"cancelSubscription": "0.00116298",
-		"editBillingModel": "0.00040956",
-		"executePullPayment": "0.00363918"
+		"createBillingModel": "0.00414069",
+		"subscribeToBillingModel": "0.00300145",
+		"cancelSubscription": "0.00113467",
+		"editBillingModel": "0.00039512",
+		"executePullPayment": "0.0035785"
 	},
 	"SingleDynamicPullPayment": {
-		"createBillingModel": "0.00220631",
-		"subscribeToBillingModel": "0.00645394",
-		"editBillingModel": "0.00053908"
+		"createBillingModel": "0.00217749",
+		"subscribeToBillingModel": "0.00638878",
+		"editBillingModel": "0.00051038"
 	},
 	"SinglePullPayment": {
-		"createBillingModel": "0.00355856",
-		"subscribeToBillingModel": "0.00532753",
-		"editBillingModel": "0.00060013"
+		"createBillingModel": "0.00352547",
+		"subscribeToBillingModel": "0.00526664",
+		"editBillingModel": "0.0005653"
 	}
 }

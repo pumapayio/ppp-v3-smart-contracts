@@ -113,6 +113,21 @@ contract('SingleDynamicPullPayment', (accounts) => {
 				`SingleDynamicPullPayment_${currentBillingModelId}`
 			);
 		});
+
+		it('should revert when existing reference is passed while creating bm', async () => {
+			const currentBillingModelId = await this.contract.getCurrentBillingModelId();
+
+			await expectRevert(
+				this.contract.createBillingModel(
+					billingModel.payee,
+					billingModel.merchantName,
+					`SingleDynamicPullPayment_${currentBillingModelId}`,
+					billingModel.merchantURL,
+					{ from: merchant }
+				),
+				'SingleDynamicPullPayment: REFERENCE_ALREADY_EXISTS'
+			);
+		});
 	});
 
 	describe('subscribeToBillingModel()', async () => {
@@ -271,6 +286,23 @@ contract('SingleDynamicPullPayment', (accounts) => {
 			const subscriptionDetails = await this.contract.getSubscription(currentSubscriptionId);
 			expect(subscriptionDetails.uniqueReference).to.be.eq(
 				`SingleDynamicPullPayment_${currentBillingModelId}_${currentSubscriptionId}`
+			);
+		});
+
+		it('should revert when invalid reference is passed while subscribing', async () => {
+			await expectRevert(
+				this.contract.subscribeToBillingModel(
+					currentBillingModelId,
+					name,
+					billingModel.token,
+					billingModel.token,
+					15,
+					`SingleDynamicPullPayment_${currentBillingModelId}_${currentSubscriptionId}`,
+					{
+						from: customer
+					}
+				),
+				'SingleDynamicPullPayment: REFERENCE_ALREADY_EXISTS'
 			);
 		});
 	});
@@ -470,6 +502,14 @@ contract('SingleDynamicPullPayment', (accounts) => {
 				this.contract.getPullPayment(15),
 				'RecurringPullPayment: INVALID_PULLPAYMENT_ID'
 			);
+		});
+
+		it('should get version number correcntly', async () => {
+			const version = await this.contract.getVersionNumber();
+			expect(version[0]).to.bignumber.be.eq(new BN('1'));
+			expect(version[1]).to.bignumber.be.eq(new BN('0'));
+			expect(version[2]).to.bignumber.be.eq(new BN('0'));
+			expect(version[3]).to.bignumber.be.eq(new BN('0'));
 		});
 	});
 });

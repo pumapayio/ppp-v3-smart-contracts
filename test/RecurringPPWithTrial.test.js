@@ -244,6 +244,27 @@ contract('RecurringPPWithFreeTrial', (accounts) => {
 				`RecurringPullPaymentWithFreeTrial_${currentBillingModelId}`
 			);
 		});
+
+		it('should revert when existing reference is passed while creating bm', async () => {
+			const currentBillingModelId = await this.contract.getCurrentBillingModelId();
+
+			await expectRevert(
+				this.contract.createBillingModel(
+					billingModel.payee,
+					billingModel.name,
+					'',
+					`RecurringPullPaymentWithFreeTrial_${currentBillingModelId}`,
+					billingModel.merchantURL,
+					billingModel.amount,
+					billingModel.token,
+					billingModel.frequency,
+					billingModel.trialPeriod,
+					billingModel.numberOfPayments,
+					{ from: merchant }
+				),
+				'RecurringPullPaymentWithFreeTrial: REFERENCE_ALREADY_EXISTS'
+			);
+		});
 	});
 
 	describe('subscribeToBillingModel()', () => {
@@ -336,6 +357,22 @@ contract('RecurringPPWithFreeTrial', (accounts) => {
 			const subscriptionDetails = await this.contract.getSubscription(currentSubscriptionId);
 			expect(subscriptionDetails.uniqueReference).to.be.eq(
 				`RecurringPullPaymentWithFreeTrial_${currentBillingModelId}_${currentSubscriptionId}`
+			);
+		});
+
+		it('should revert when invalid reference is passed while subscribing', async () => {
+			currentSubscriptionId = await this.contract.getCurrentSubscriptionId();
+
+			await expectRevert(
+				this.contract.subscribeToBillingModel(
+					currentBillingModelId,
+					billingModel.token,
+					`RecurringPullPaymentWithFreeTrial_${currentBillingModelId}_${currentSubscriptionId}`,
+					{
+						from: customer
+					}
+				),
+				'RecurringPullPaymentWithFreeTrial: REFERENCE_ALREADY_EXISTS'
 			);
 		});
 
@@ -731,6 +768,24 @@ contract('RecurringPPWithFreeTrial', (accounts) => {
 			);
 		});
 
+		it('should get swappable billing model correctly', async () => {
+			this.bm = await this.contract.getBillingModel(currentBillingModelId, pmaToken.address);
+
+			expect(this.bm.payee).to.be.eq(merchant);
+			expect(this.bm.trialPeriod).to.bignumber.be.eq(new BN('120'));
+			expect(this.bm.creationTime).to.bignumber.be.gt(new BN('0'));
+			expect(this.bm.merchantURL).to.be.eq(billingModel.merchantURL);
+
+			await expectRevert(
+				this.contract.getBillingModel(15),
+				'RecurringPullPaymentWithFreeTrial: INVALID_BILLING_MODEL_ID'
+			);
+			await expectRevert(
+				this.contract.getBillingModel(0),
+				'RecurringPullPaymentWithFreeTrial: INVALID_BILLING_MODEL_ID'
+			);
+		});
+
 		it('should get pullPayment correctly', async () => {
 			await this.contract.subscribeToBillingModel(currentBillingModelId, pmaToken.address, '', {
 				from: customer
@@ -789,6 +844,16 @@ contract('RecurringPPWithFreeTrial', (accounts) => {
 			});
 
 			expect(subscription.isFreeTrialEnded).to.be.eq(true);
+		});
+
+		describe('getVersionNumber()', () => {
+			it('should get version number correcntly', async () => {
+				const version = await this.contract.getVersionNumber();
+				expect(version[0]).to.bignumber.be.eq(new BN('1'));
+				expect(version[1]).to.bignumber.be.eq(new BN('0'));
+				expect(version[2]).to.bignumber.be.eq(new BN('0'));
+				expect(version[3]).to.bignumber.be.eq(new BN('0'));
+			});
 		});
 	});
 });

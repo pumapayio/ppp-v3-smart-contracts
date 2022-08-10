@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import '@openzeppelin/contracts-upgradeable/utils/CountersUpgradeable.sol';
-import '@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol';
-import '@openzeppelin/contracts-upgradeable/utils/StringsUpgradeable.sol';
+import '@openzeppelin/contracts/utils/Counters.sol';
+import '@openzeppelin/contracts/security/ReentrancyGuard.sol';
+import '@openzeppelin/contracts/utils/Strings.sol';
 import '../common/RegistryHelper.sol';
 
 import './interfaces/IRecurringPPWithPaidTrial.sol';
@@ -20,12 +20,12 @@ import '../common/interfaces/IUniswapV2Router02.sol';
  * A typical example of this type of billing model is a monthly membership payment of $50.00 for 12 months with a one-time registration fee of $10.00 paid first.
  */
 contract RecurringPullPaymentWithPaidTrial is
-	ReentrancyGuardUpgradeable,
+	ReentrancyGuard,
 	RegistryHelper,
 	IRecurringPPWithPaidTrial,
 	IVersionedContract
 {
-	using CountersUpgradeable for CountersUpgradeable.Counter;
+	using Counters for Counters.Counter;
 	/*
    	=======================================================================
    	======================== Structures ===================================
@@ -80,11 +80,11 @@ contract RecurringPullPaymentWithPaidTrial is
    	=======================================================================
  	*/
 	/// @dev The couter for billing model ids
-	CountersUpgradeable.Counter private _billingModelIDs;
+	Counters.Counter private _billingModelIDs;
 	/// @dev The couter for subscription ids
-	CountersUpgradeable.Counter private _subscriptionIDs;
+	Counters.Counter private _subscriptionIDs;
 	/// @dev The couter for pullpayment ids
-	CountersUpgradeable.Counter private _pullPaymentIDs;
+	Counters.Counter private _pullPaymentIDs;
 
 	/// @notice Mappings by ids
 
@@ -120,13 +120,9 @@ contract RecurringPullPaymentWithPaidTrial is
  	*/
 
 	/**
-	 * @notice Used in place of the constructor to allow the contract to be upgradable via proxy.
 	 * @dev This method initializes registry helper to be able to access method of core registry
 	 */
-	function initialize(address registryAddress) external initializer {
-		__ReentrancyGuard_init();
-		_init_registryHelper(registryAddress);
-	}
+	constructor(address registryAddress) RegistryHelper(registryAddress) {}
 
 	/*
    	=======================================================================
@@ -250,16 +246,13 @@ contract RecurringPullPaymentWithPaidTrial is
 		if (bytes(_reference).length > 0) {
 			require(
 				_bmReferences[_reference] == 0,
-				'RecurringPullPaymentWithPaidTrial_: REFERENCE_ALREADY_EXISTS'
+				'RecurringPullPaymentWithPaidTrial: REFERENCE_ALREADY_EXISTS'
 			);
 			_bmReferences[_reference] = newBillingModelID;
 			bm.uniqueReference = _reference;
 		} else {
 			string memory newReference = string(
-				abi.encodePacked(
-					'RecurringPullPaymentWithPaidTrial_',
-					StringsUpgradeable.toString(newBillingModelID)
-				)
+				abi.encodePacked('RecurringPullPaymentWithPaidTrial_', Strings.toString(newBillingModelID))
 			);
 			_bmReferences[newReference] = newBillingModelID;
 			bm.uniqueReference = newReference;
@@ -323,9 +316,9 @@ contract RecurringPullPaymentWithPaidTrial is
 			string memory newReference = string(
 				abi.encodePacked(
 					'RecurringPullPaymentWithPaidTrial_',
-					StringsUpgradeable.toString(_billingModelID),
+					Strings.toString(_billingModelID),
 					'_',
-					StringsUpgradeable.toString(newSubscriptionID)
+					Strings.toString(newSubscriptionID)
 				)
 			);
 			_subscriptionReferences[newReference] = newSubscriptionID;
@@ -591,15 +584,22 @@ contract RecurringPullPaymentWithPaidTrial is
 		path[0] = _token;
 		path[1] = bmDetails.settlementToken;
 
-		uint256[] memory amountsIn = IUniswapV2Router02(registry.getUniswapRouter()).getAmountsIn(
-			bmDetails.amount,
-			path
-		);
+		uint256 amount;
+		if (_token != bmDetails.settlementToken) {
+			uint256[] memory amountsIn = IUniswapV2Router02(registry.getUniswapRouter()).getAmountsIn(
+				bmDetails.amount,
+				path
+			);
+			amount = amountsIn[0];
+		} else {
+			amount = bmDetails.amount;
+		}
 
+		bm.name = bmDetails.name;
 		bm.payee = bmDetails.payee;
 		bm.settlementAmount = bmDetails.amount;
 		bm.settlementToken = bmDetails.settlementToken;
-		bm.paymentAmount = amountsIn[0];
+		bm.paymentAmount = amount;
 		bm.paymentToken = _token;
 		bm.frequency = bmDetails.frequency;
 		bm.trialPeriod = bmDetails.trialPeriod;

@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import '@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol';
+import '@openzeppelin/contracts/security/ReentrancyGuard.sol';
+import './RegistryHelper.sol';
 
 import './interfaces/IVersionedContract.sol';
 import './interfaces/IExecutor.sol';
@@ -9,11 +10,8 @@ import './interfaces/IBEP20.sol';
 import './interfaces/IUniswapV2Router02.sol';
 import './interfaces/IUniswapV2Factory.sol';
 import './interfaces/IUniswapV2Pair.sol';
-
 import './interfaces/IPullPaymentRegistry.sol';
-
 import '../pullPayments/interfaces/IPullPayment.sol';
-import './RegistryHelper.sol';
 
 /**
  * @title Executor
@@ -25,7 +23,7 @@ import './RegistryHelper.sol';
  * A typical example of execution is payment of 10PMA to merchant.
  * In this, if 10% is execution fee then execution fee receiver gets 1PMA and merchant receives 9PMA.
  */
-contract Executor is ReentrancyGuardUpgradeable, RegistryHelper, IExecutor, IVersionedContract {
+contract Executor is ReentrancyGuard, RegistryHelper, IExecutor, IVersionedContract {
 	/*
    	=======================================================================
    	======================== Constants ====================================
@@ -54,14 +52,10 @@ contract Executor is ReentrancyGuardUpgradeable, RegistryHelper, IExecutor, IVer
    	=======================================================================
  	*/
 	/**
-	 * @notice Used in place of the constructor to allow the contract to be upgradable via proxy.
 	 * @dev This method initializes registry helper to be able to access method of core registry.
 	 * Also initializes the uniswpa factory, router, ppRegistry and pma token contracts
 	 */
-	function initialize(address registryAddress) external virtual initializer {
-		__ReentrancyGuard_init();
-		_init_registryHelper(registryAddress);
-
+	constructor(address registryAddress) RegistryHelper(registryAddress) {
 		pullPaymentRegistry = IPullPaymentRegistry(registry.getPullPaymentRegistry());
 		PMAToken = IBEP20(registry.getPMAToken());
 		uniswapRouterV2 = IUniswapV2Router02(registry.getUniswapRouter());

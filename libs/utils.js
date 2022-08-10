@@ -36,38 +36,22 @@ const deploySmartContracts = async (owner, merchant, customer, user, fundRceiver
 	const ppRegistry = await deployProxy(PullPaymentRegistry, [], { initializer: 'initialize' });
 
 	// RecurringPullPayment
-	const recurringPP = await deployProxy(RecurringPullPayment, [registry.address], {
-		initializer: 'initialize'
-	});
+	const recurringPP = await RecurringPullPayment.new(registry.address);
 
 	// RecurringPullPayment
-	const recurringPPWithFreeTrial = await deployProxy(RecurringPPWithFreeTrial, [registry.address], {
-		initializer: 'initialize'
-	});
+	const recurringPPWithFreeTrial = await RecurringPPWithFreeTrial.new(registry.address);
 
 	// RecurringPullPaymentWithPaidTrial
-	const recurringPPWithPaidTrial = await deployProxy(RecurringPPWithPaidTrial, [registry.address], {
-		initializer: 'initialize'
-	});
+	const recurringPPWithPaidTrial = await RecurringPPWithPaidTrial.new(registry.address);
 
 	// SinglePullPayment
-	const singlePullPayment = await deployProxy(SinglePullPayment, [registry.address], {
-		initializer: 'initialize'
-	});
+	const singlePullPayment = await SinglePullPayment.new(registry.address);
 
 	// SingleDynamicPullPayment
-	const singleDynamicPullPayment = await deployProxy(SingleDynamicPullPayment, [registry.address], {
-		initializer: 'initialize'
-	});
+	const singleDynamicPullPayment = await SingleDynamicPullPayment.new(registry.address);
 
 	// RecurringDynamicPullPayment
-	const recurringDynamicPullPayment = await deployProxy(
-		RecurringDynamicPullPayment,
-		[registry.address],
-		{
-			initializer: 'initialize'
-		}
-	);
+	const recurringDynamicPullPayment = await RecurringDynamicPullPayment.new(registry.address);
 
 	// BEP20 ADA Token
 	const cardano = await Cardano.new({ from: owner });
@@ -116,9 +100,7 @@ const deploySmartContracts = async (owner, merchant, customer, user, fundRceiver
 	await registry.setAddressFor('PullPaymentsRegistry', ppRegistry.address);
 
 	// Executor
-	const executor = await deployProxy(Executor, [registry.address], {
-		initializer: 'initialize'
-	});
+	const executor = await Executor.new(registry.address);
 
 	// Register Executor
 	await registry.setAddressFor('Executor', executor.address, { from: owner });

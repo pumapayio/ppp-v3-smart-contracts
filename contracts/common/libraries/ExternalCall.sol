@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 import '@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol';
 
 /**
- * @title ExternalCall 
+ * @title ExternalCall
  * @author The Pumapay Team
  */
 library ExternalCall {
@@ -24,7 +24,7 @@ library ExternalCall {
 			require(AddressUpgradeable.isContract(destination), 'Invalid contract address');
 		bool success;
 		bytes memory returnData;
-		(success, returnData) = destination.call{value: value}(data);
+		(success, returnData) = destination.call{ value: value }(data);
 		require(success, 'Transaction execution failed.');
 		return returnData;
 	}
