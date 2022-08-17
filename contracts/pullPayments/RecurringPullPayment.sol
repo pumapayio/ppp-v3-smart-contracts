@@ -494,6 +494,12 @@ contract RecurringPullPayment is ReentrancyGuard, IPullPayment, RegistryHelper, 
    	=======================================================================
  	*/
 
+	/**
+	 * @dev This method is called by Keeper network nodes per block. This returns the list of subscription ids and their count which needs to be executed.
+	 * @param checkData specified in the upkeep registration so it is always the same for a registered upkeep.
+	 * @return upkeepNeeded boolean to indicate whether the keeper should call performUpkeep or not.
+	 * @return performData bytes that the keeper should call performUpkeep with, if upkeep is needed.
+	 */
 	function checkUpkeep(bytes calldata checkData)
 		external
 		view
@@ -509,6 +515,14 @@ contract RecurringPullPayment is ReentrancyGuard, IPullPayment, RegistryHelper, 
 		}
 	}
 
+	/**
+	 * @notice method that is actually executed by the keepers, via the registry.
+	 * The data returned by the checkUpkeep simulation will be passed into this method to actually be executed.
+	 * @param performData is the data which was passed back from the checkData
+	 * simulation. If it is encoded, it can easily be decoded into other types by
+	 * calling `abi.decode`. This data should not be trusted, and should be
+	 * validated against the contract's current state.
+	 */
 	function performUpkeep(bytes calldata performData) external {
 		(uint256[] memory subsctionIds, uint256 subcriptionCount) = abi.decode(
 			performData,
@@ -520,6 +534,11 @@ contract RecurringPullPayment is ReentrancyGuard, IPullPayment, RegistryHelper, 
 		}
 	}
 
+	/**
+	 * @notice This method gets the list of subscription ids which needs to be executed
+	 * @return subscriptionIds - indicates the list of subscrtipion ids
+	 * count - indicates the total number of subscriptions to execute
+	 */
 	function getSubscriptionIds()
 		public
 		view
@@ -536,6 +555,11 @@ contract RecurringPullPayment is ReentrancyGuard, IPullPayment, RegistryHelper, 
 		}
 	}
 
+	/**
+	 * @notice This method checks whether to execute the pullpayment for the given subscription id or not.
+	 * returns true if pullpayment is needed, otherwise returns false
+	 * @param _subsctptionId - indicates the subscription id
+	 */
 	function isPullpayment(uint256 _subsctptionId) public view returns (bool) {
 		BillingModel storage bm = _billingModels[_subscriptionToBillingModel[_subsctptionId]];
 		Subscription storage subscription = bm.subscriptions[_subsctptionId];
