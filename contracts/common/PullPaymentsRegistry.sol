@@ -16,6 +16,7 @@ contract PullPaymentsRegistry is OwnableUpgradeable, IPullPaymentRegistry {
    	======================== Public Variables ============================
    	=======================================================================
  	*/
+	uint256 public BATCH_SIZE;
 	mapping(bytes32 => address) public registry;
 	mapping(address => bool) private executors;
 
@@ -30,6 +31,8 @@ contract PullPaymentsRegistry is OwnableUpgradeable, IPullPaymentRegistry {
 	 */
 	function initialize() external virtual initializer {
 		__Ownable_init();
+
+		BATCH_SIZE = 20;
 	}
 
 	/*
@@ -114,6 +117,13 @@ contract PullPaymentsRegistry is OwnableUpgradeable, IPullPaymentRegistry {
 		executors[_addr] = true;
 		emit RegistryUpdated(_identifier, identifierHash, _addr);
 		emit ExecutorGranted(_addr);
+	}
+
+	/**
+	 * @notice This method allows owner to update the batch size for executing the subscriptions in batch
+	 */
+	function updateBatchSize(uint256 _batchSize) external onlyOwner {
+		BATCH_SIZE = _batchSize;
 	}
 
 	/*

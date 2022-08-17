@@ -88,7 +88,8 @@ module.exports = {
 				new HDWalletProvider(mnemonic, `https://ropsten.infura.io/v3/${infuraApiKey}`),
 			network_id: 3,
 			gasPrice: 10e9,
-			skipDryRun: true
+			skipDryRun: true,
+			networkCheckTimeout: 20000000
 		},
 		rinkeby: {
 			provider: () =>
@@ -96,6 +97,14 @@ module.exports = {
 			network_id: 4,
 			gasPrice: 10e9,
 			skipDryRun: true
+		},
+		mumbai: {
+			provider: () =>
+				new HDWalletProvider(mnemonic, 'https://matic-mumbai.chainstacklabs.com'),
+			network_id: 80001,
+			gasPrice: 10e9,
+			skipDryRun: true,
+			networkCheckTimeout: 20000000
 		}
 		// Useful for deploying to a public network.
 		// NB: It's important to wrap the provider as a function.

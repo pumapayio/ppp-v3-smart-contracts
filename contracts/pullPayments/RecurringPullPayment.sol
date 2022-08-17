@@ -11,6 +11,7 @@ import '../common/interfaces/IPullPaymentRegistry.sol';
 import '../common/interfaces/IVersionedContract.sol';
 import '../common/interfaces/IExecutor.sol';
 import '../common/interfaces/IUniswapV2Router02.sol';
+import '../common/interfaces/IKeeperRegistry.sol';
 
 /**
  * @title RecurringPullPayment - The billing model for subscription based payments
@@ -20,7 +21,6 @@ import '../common/interfaces/IUniswapV2Router02.sol';
  */
 contract RecurringPullPayment is ReentrancyGuard, IPullPayment, RegistryHelper, IVersionedContract {
 	using Counters for Counters.Counter;
-
 	/*
    	=======================================================================
    	======================== Structures ===================================
@@ -66,6 +66,14 @@ contract RecurringPullPayment is ReentrancyGuard, IPullPayment, RegistryHelper, 
 		uint256 billingModelID;
 		uint256 subscriptionID;
 	}
+
+	/*
+   	=======================================================================
+   	======================== Public Variables =============================
+   	=======================================================================
+ 	*/
+
+	IKeeperRegistry public keeperRegistry;
 
 	/*
    	=======================================================================
@@ -346,6 +354,7 @@ contract RecurringPullPayment is ReentrancyGuard, IPullPayment, RegistryHelper, 
 				block.timestamp >= subscription.nextPaymentTimestamp,
 			'RecurringPullPayment: INVALID_EXECUTION_TIME'
 		);
+
 		require(
 			subscription.cancelTimestamp == 0 || block.timestamp < subscription.cancelTimestamp,
 			'RecurringPullPayment: SUBSCRIPTION_CANCELED'
@@ -359,6 +368,7 @@ contract RecurringPullPayment is ReentrancyGuard, IPullPayment, RegistryHelper, 
 		subscription.lastPaymentTimestamp = block.timestamp;
 		subscription.nextPaymentTimestamp = subscription.nextPaymentTimestamp + bm.frequency;
 		subscription.pullPaymentIDs.push(newPullPaymentID);
+
 		// update pull payment
 		subscription.pullPayments[newPullPaymentID].paymentAmount = bm.amount;
 		subscription.pullPayments[newPullPaymentID].executionTimestamp = block.timestamp;
@@ -483,6 +493,58 @@ contract RecurringPullPayment is ReentrancyGuard, IPullPayment, RegistryHelper, 
    	======================== Getter Methods ===============================
    	=======================================================================
  	*/
+
+	function checkUpkeep(bytes calldata checkData)
+		external
+		view
+		returns (bool upkeepNeeded, bytes memory performData)
+	{
+		checkData;
+
+		(uint256[] memory subsctionIds, uint256 subcriptionCount) = getSubscriptionIds();
+
+		if (subcriptionCount > 0) {
+			upkeepNeeded = true;
+			performData = abi.encode(subsctionIds, subcriptionCount);
+		}
+	}
+
+	function performUpkeep(bytes calldata performData) external {
+		(uint256[] memory subsctionIds, uint256 subcriptionCount) = abi.decode(
+			performData,
+			(uint256[], uint256)
+		);
+
+		for (uint256 subIndex = 0; subIndex < subcriptionCount; subIndex++) {
+			_executePullPayment(subsctionIds[subIndex]);
+		}
+	}
+
+	function getSubscriptionIds()
+		public
+		view
+		returns (uint256[] memory subscriptionIds, uint256 count)
+	{
+		uint256 batchSize = IPullPaymentRegistry(registry.getPullPaymentRegistry()).BATCH_SIZE();
+		subscriptionIds = new uint256[](batchSize);
+
+		for (uint256 id = 1; id <= _subscriptionIDs.current(); id++) {
+			if (isPullpayment(id) && count < batchSize) {
+				subscriptionIds[count] = id;
+				count++;
+			}
+		}
+	}
+
+	function isPullpayment(uint256 _subsctptionId) public view returns (bool) {
+		BillingModel storage bm = _billingModels[_subscriptionToBillingModel[_subsctptionId]];
+		Subscription storage subscription = bm.subscriptions[_subsctptionId];
+
+		return (block.timestamp >= subscription.startTimestamp &&
+			block.timestamp >= subscription.nextPaymentTimestamp &&
+			subscription.cancelTimestamp == 0 &&
+			subscription.numberOfPayments > 0);
+	}
 
 	/**
 	 * @notice Retrieves a billing model

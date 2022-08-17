@@ -17,4 +17,6 @@ interface IPullPaymentRegistry {
 	function getPPAddressForString(string calldata _identifier) external view returns (address);
 
 	function isExecutorGranted(address _executor) external view returns (bool);
+
+	function BATCH_SIZE() external view returns (uint256);
 }
