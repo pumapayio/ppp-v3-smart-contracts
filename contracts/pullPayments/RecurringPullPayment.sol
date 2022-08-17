@@ -5,6 +5,7 @@ import '@openzeppelin/contracts/utils/Counters.sol';
 import '@openzeppelin/contracts/security/ReentrancyGuard.sol';
 import '@openzeppelin/contracts/utils/Strings.sol';
 import '../common/RegistryHelper.sol';
+import '../common/KeeperCompatible.sol';
 
 import './interfaces/IPullPayment.sol';
 import '../common/interfaces/IPullPaymentRegistry.sol';
@@ -19,7 +20,13 @@ import '../common/interfaces/IKeeperRegistry.sol';
  * @notice This billing model allows merchants to charge customers a fixed amount for a pre-defined interval of time and duration.
  * A typical example is a monthly payment of $5.00 for 12 months.
  */
-contract RecurringPullPayment is ReentrancyGuard, IPullPayment, RegistryHelper, IVersionedContract {
+contract RecurringPullPayment is
+	ReentrancyGuard,
+	IPullPayment,
+	RegistryHelper,
+	KeeperCompatible,
+	IVersionedContract
+{
 	using Counters for Counters.Counter;
 	/*
    	=======================================================================
@@ -503,6 +510,7 @@ contract RecurringPullPayment is ReentrancyGuard, IPullPayment, RegistryHelper, 
 	function checkUpkeep(bytes calldata checkData)
 		external
 		view
+		override
 		returns (bool upkeepNeeded, bytes memory performData)
 	{
 		checkData;
@@ -523,7 +531,7 @@ contract RecurringPullPayment is ReentrancyGuard, IPullPayment, RegistryHelper, 
 	 * calling `abi.decode`. This data should not be trusted, and should be
 	 * validated against the contract's current state.
 	 */
-	function performUpkeep(bytes calldata performData) external {
+	function performUpkeep(bytes calldata performData) external override {
 		(uint256[] memory subsctionIds, uint256 subcriptionCount) = abi.decode(
 			performData,
 			(uint256[], uint256)

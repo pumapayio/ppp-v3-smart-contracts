@@ -5,6 +5,7 @@ import '@openzeppelin/contracts/utils/Counters.sol';
 import '@openzeppelin/contracts/security/ReentrancyGuard.sol';
 import '@openzeppelin/contracts/utils/Strings.sol';
 import '../common/RegistryHelper.sol';
+import '../common/KeeperCompatible.sol';
 
 import './interfaces/IRecurringPPWithPaidTrial.sol';
 import '../common/interfaces/IPullPaymentRegistry.sol';
@@ -23,6 +24,7 @@ contract RecurringPullPaymentWithPaidTrial is
 	ReentrancyGuard,
 	RegistryHelper,
 	IRecurringPPWithPaidTrial,
+	KeeperCompatible,
 	IVersionedContract
 {
 	using Counters for Counters.Counter;
@@ -523,6 +525,82 @@ contract RecurringPullPaymentWithPaidTrial is
    	======================== Getter Methods ===============================
    	=======================================================================
  	*/
+	/**
+	 * @dev This method is called by Keeper network nodes per block. This returns the list of subscription ids and their count which needs to be executed.
+	 * @param checkData specified in the upkeep registration so it is always the same for a registered upkeep.
+	 * @return upkeepNeeded boolean to indicate whether the keeper should call performUpkeep or not.
+	 * @return performData bytes that the keeper should call performUpkeep with, if upkeep is needed.
+	 */
+	function checkUpkeep(bytes calldata checkData)
+		external
+		view
+		override
+		returns (bool upkeepNeeded, bytes memory performData)
+	{
+		checkData;
+
+		(uint256[] memory subsctionIds, uint256 subcriptionCount) = getSubscriptionIds();
+
+		if (subcriptionCount > 0) {
+			upkeepNeeded = true;
+			performData = abi.encode(subsctionIds, subcriptionCount);
+		}
+	}
+
+	/**
+	 * @notice method that is actually executed by the keepers, via the registry.
+	 * The data returned by the checkUpkeep simulation will be passed into this method to actually be executed.
+	 * @param performData is the data which was passed back from the checkData
+	 * simulation. If it is encoded, it can easily be decoded into other types by
+	 * calling `abi.decode`. This data should not be trusted, and should be
+	 * validated against the contract's current state.
+	 */
+	function performUpkeep(bytes calldata performData) external override {
+		(uint256[] memory subsctionIds, uint256 subcriptionCount) = abi.decode(
+			performData,
+			(uint256[], uint256)
+		);
+
+		for (uint256 subIndex = 0; subIndex < subcriptionCount; subIndex++) {
+			_executePullPayment(subsctionIds[subIndex]);
+		}
+	}
+
+	/**
+	 * @notice This method gets the list of subscription ids which needs to be executed
+	 * @return subscriptionIds - indicates the list of subscrtipion ids
+	 * count - indicates the total number of subscriptions to execute
+	 */
+	function getSubscriptionIds()
+		public
+		view
+		returns (uint256[] memory subscriptionIds, uint256 count)
+	{
+		uint256 batchSize = IPullPaymentRegistry(registry.getPullPaymentRegistry()).BATCH_SIZE();
+		subscriptionIds = new uint256[](batchSize);
+
+		for (uint256 id = 1; id <= _subscriptionIDs.current(); id++) {
+			if (isPullpayment(id) && count < batchSize) {
+				subscriptionIds[count] = id;
+				count++;
+			}
+		}
+	}
+
+	/**
+	 * @notice This method checks whether to execute the pullpayment for the given subscription id or not.
+	 * returns true if pullpayment is needed, otherwise returns false
+	 * @param _subsctptionId - indicates the subscription id
+	 */
+	function isPullpayment(uint256 _subsctptionId) public view returns (bool) {
+		BillingModel storage bm = _billingModels[_subscriptionToBillingModel[_subsctptionId]];
+		Subscription storage subscription = bm.subscriptions[_subsctptionId];
+
+		return (block.timestamp >= subscription.startTimestamp &&
+			block.timestamp >= subscription.nextPaymentTimestamp &&
+			subscription.cancelTimestamp == 0 &&
+			subscription.numberOfPayments > 0);
+	}
 
 	/**
 	 * @notice Retrieves a billing model
