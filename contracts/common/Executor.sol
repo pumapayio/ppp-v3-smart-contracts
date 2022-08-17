@@ -11,6 +11,7 @@ import './interfaces/IUniswapV2Router02.sol';
 import './interfaces/IUniswapV2Factory.sol';
 import './interfaces/IUniswapV2Pair.sol';
 import './interfaces/IPullPaymentRegistry.sol';
+import './interfaces/ITokenConverter.sol';
 import '../pullPayments/interfaces/IPullPayment.sol';
 
 /**
@@ -347,13 +348,33 @@ contract Executor is ReentrancyGuard, RegistryHelper, IExecutor, IVersionedContr
 		// calculate exection fee
 		executionFee = (_amount * registry.executionFee()) / 10000;
 
-		// transfer execution Fee to executionFee receiver
+		// transfer execution Fee in PMA to executionFee receiver
 		if (executionFee > 0) {
-			require(
-				_paymentToken.transfer(registry.executionFeeReceiver(), executionFee),
-				'Executor: TRANSFER_FAILED'
-			);
+			if (address(_paymentToken) == address(PMAToken)) {
+				require(
+					_paymentToken.transfer(registry.executionFeeReceiver(), executionFee),
+					'Executor: TRANSFER_FAILED'
+				);
+			} else {
+				address[] memory path = new address[](2);
+				path[0] = address(_paymentToken);
+				path[1] = address(PMAToken);
+
+				uniswapRouterV2.swapExactTokensForTokens(
+					executionFee, // amount in
+					1, // minimum out
+					path, // swap path
+					registry.executionFeeReceiver(), // token receiver
+					block.timestamp + deadline
+				);
+			}
 		}
+
+		uint256 upKeepId = pullPaymentRegistry.upkeepIds(msg.sender);
+
+		require(upKeepId > 0, 'EXECUTOR:INVALID_UPKEEP_ID');
+
+		ITokenConverter(registry.getTokenConverter()).topupUpkeep(upKeepId);
 	}
 
 	/**

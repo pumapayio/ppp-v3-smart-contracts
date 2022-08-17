@@ -17,8 +17,12 @@ contract PullPaymentsRegistry is OwnableUpgradeable, IPullPaymentRegistry {
    	=======================================================================
  	*/
 	uint256 public BATCH_SIZE;
+
 	mapping(bytes32 => address) public registry;
 	mapping(address => bool) private executors;
+
+	/// @notice upkeep contract address => upkeepId
+	mapping(address => uint256) public upkeepIds;
 
 	/*
    	=======================================================================
@@ -64,6 +68,17 @@ contract PullPaymentsRegistry is OwnableUpgradeable, IPullPaymentRegistry {
    	======================== Public Methods ===============================
    	=======================================================================
  	*/
+
+	/**
+	 * @notice This method allows owner to add the upkeeps in the core registry
+	 * @param upkeepAddress - indicates the upkeep address(pullPaynent contract which is keeper compatible)
+	 * @param upkeepId 			- indicates the upkeep id which is received after registering the upkeep in keeper registry.
+	 */
+	function setUpkeepId(address upkeepAddress, uint256 upkeepId) external virtual onlyOwner {
+		require(upkeepAddress != address(0), 'INVALID_UPKEEP_ADDRESS');
+		require(upkeepId > 0, 'INVALID_UPKEEP_ID');
+		upkeepIds[upkeepAddress] = upkeepId;
+	}
 
 	/**
 	 *	@notice Grant executor role account to call the execute function on the Executor.

@@ -24,6 +24,7 @@ contract Registry is OwnableUpgradeable, CoreRegistry, PullPaymentConfig {
 	bytes32 constant UNISWAP_ROUTER_REGISTRY_ID = keccak256(abi.encodePacked('UniswapV2Router02'));
 	bytes32 constant PULLPAYMENT_REGISTRY_ID = keccak256(abi.encodePacked('PullPaymentsRegistry'));
 	bytes32 constant KEEPER_REGISTRY = keccak256(abi.encodePacked('KeeperRegistry'));
+	bytes32 constant TOKEN_CONVERTER = keccak256(abi.encodePacked('TokenConverter'));
 
 	/*
    	=======================================================================
@@ -110,7 +111,17 @@ contract Registry is OwnableUpgradeable, CoreRegistry, PullPaymentConfig {
 		return getAddressForOrDie(PULLPAYMENT_REGISTRY_ID);
 	}
 
+	/**
+	 * @notice This method returns the address of the Keeper registry contract
+	 */
 	function getKeeperRegistry() public view virtual returns (address) {
 		return getAddressForOrDie(KEEPER_REGISTRY);
+	}
+
+	/**
+	 * @notice This method returns the address of the Token Converter contract
+	 */
+	function getTokenConverter() public view virtual returns (address) {
+		return getAddressForOrDie(TOKEN_CONVERTER);
 	}
 }

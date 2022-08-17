@@ -19,4 +19,8 @@ interface IPullPaymentRegistry {
 	function isExecutorGranted(address _executor) external view returns (bool);
 
 	function BATCH_SIZE() external view returns (uint256);
+
+	function setUpkeepId(address upkeepAddress, uint256 upkeepId) external;
+
+	function upkeepIds(address upkeepAddress) external view returns (uint256);
 }
