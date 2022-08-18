@@ -109,31 +109,6 @@ contract Executor is ReentrancyGuard, RegistryHelper, IExecutor, IVersionedContr
 		return pullPayment.executePullPayment(_subscriptionId);
 	}
 
-	/**
-	 *	@notice This function Swaps the payment tokens to settlement tokens if needed and transafer the tokens to merchent.
-	 * 	For all the cases below we have the following convention-
-	 * 	<payment token> ---> <settlement token>
-	 * 	======================================================
-	 * 	Case 1: token0 ---> token0 payment, then simple transfer for same tokens - No need to SWAP
-	 *  ======================================================
-	 *	Case 2: no-PMA --> PMA
-	 * 	In this case, we need to convert the payment token to PMA
-	 * 	======================================================
-	 * 	Case 3: PMA to no-PMA
-	 * 	In this case, we need to convert PMA to the settlement token
-	 * 	In the cases below there should always be a route through the PMA token in the chain of SWAPS
-	 *  ======================================================
-	 *	Case 4: no-PMA to no-PMA
-	 *  In this the first SWAP path is:: WBNB ---> PMA ---> USDT
-	 *	seconds swap path is direct :: WBNB --> USDT
-	 *
-	 *	@dev This execute function can only be called by granted executor. Grant executor in pullPayment registry to allow calling this method
-	 *	@param settlementToken			- indicates IBEP20 token address which is accepted by merchent
-	 *	@param paymentToken 				- indicates IBEP20 token address which customer wants to pay
-	 *	@param from 								- indicates address of the customer
-	 *	@param to 									- indicates address of merchent
-	 *	@param amount 							- indicates amount of payment tokens
-	 */
 	function execute(
 		address settlementToken,
 		address paymentToken,
@@ -147,45 +122,21 @@ contract Executor is ReentrancyGuard, RegistryHelper, IExecutor, IVersionedContr
 		// For all the cases below we have the following convention
 		// <payment token> ---> <settlement token>
 		// ========================================
-		// Case 1: token0 ---> token0 payment, then simple transfer for same tokens - No need to SWAP
-		if (paymentToken == settlementToken) {
-			uint256 executionFee = _transferExecutionFee(from, _paymentToken, amount);
-			uint256 finalAmount = amount - executionFee;
+		// Case 1: PMA ---> PMA payment,
+		// 1. Get PMA tokens from user
+		// 1. Transfer execution fee in PMA
+		// 2. Then simple transfer same tokens to merchant - No need to SWAP
+		if (paymentToken == settlementToken && paymentToken == address(PMAToken)) {
+			// get tokens from the user
+			require(_paymentToken.transferFrom(from, address(this), amount));
 
-			require(_paymentToken.transfer(to, finalAmount), 'Executor: TRANSFER_FAILED');
+			uint256 executionFee = _transferExecutionFee(_paymentToken, amount);
+
+			require(_paymentToken.transfer(to, amount - executionFee), 'Executor: TRANSFER_FAILED');
 
 			return true;
-			// need to go through SWAP protocol to cover the following cases:
 		} else {
-			// Case 2: no-PMA --> PMA
-			// In this case, we need to convert the payment token to PMA
-			// ======================
-			// Case 3: PMA to no-PMA
-			// In this case, we need to convert PMA to the settlement token
-			// In the cases below there should always be a route through the PMA token in the chain of SWAPS
-			// Case 4: no-PMA to no-PMA same the SWAP path is:: WBNB ---> PMA ---> WBNB
-
-			(bool canSwap, address[] memory path) = canSwapFromV2(paymentToken, settlementToken);
-
-			require(canSwap, 'Executor: NO_SWAP_PATH_EXISTS');
-
-			uint256[] memory amountInMax = uniswapRouterV2.getAmountsIn(amount, path);
-
-			// transfer execution fee
-			uint256 executionFee = _transferExecutionFee(from, _paymentToken, amountInMax[0]);
-			uint256 finalAmount = amountInMax[0] - executionFee;
-
-			// Then we need to approve the payment token to be used by the Router
-			_paymentToken.approve(address(uniswapRouterV2), finalAmount);
-
-			uniswapRouterV2.swapExactTokensForTokens(
-				finalAmount, // amount in
-				1, // minimum out
-				path, // swap path
-				to, // token receiver
-				block.timestamp + deadline
-			);
-
+			_execute(settlementToken, IBEP20(paymentToken), from, to, amount);
 			return true;
 		}
 	}
@@ -216,39 +167,60 @@ contract Executor is ReentrancyGuard, RegistryHelper, IExecutor, IVersionedContr
 			uint256 executionFee
 		)
 	{
-		if (_paymentToken == _settlementToken) {
+		uint256 executionFeePercent = registry.executionFee();
+
+		if (_paymentToken == _settlementToken && _paymentToken == address(PMAToken)) {
 			// Case 1: token0 --> token0
 			// In this case, we need directly transfers the tokens
-			executionFee = (_amount * registry.executionFee()) / 10000;
+			executionFee = (_amount * executionFeePercent) / 10000;
 
 			userPayableAmount = _amount;
 			receivingAmount = _amount - executionFee;
 		} else {
-			// Case 2: no-PMA --> PMA
-			// In this case, we need to convert the payment token to PMA
-			// ======================
-			// Case 3: PMA to no-PMA
-			// In this case, we need to convert PMA to the settlement token
-			// In the cases below there should always be a route through the PMA token in the chain of SWAPS
-			// Case 4: no-PMA to no-PMA same the SWAP path is:: WBNB ---> PMA ---> WBNB
-			(bool canSwap, address[] memory path) = canSwapFromV2(_paymentToken, _settlementToken);
+			(
+				bool canSwap,
+				bool isTwoPaths,
+				address[] memory path1,
+				address[] memory path2
+			) = canSwapFromV2(_paymentToken, _settlementToken);
 
 			require(canSwap, 'Executor: NO_SWAP_PATH_EXISTS');
 
-			uint256[] memory amountInMax = uniswapRouterV2.getAmountsIn(_amount, path);
+			// This flow is executed when neither of the token is PMA token
+			if (isTwoPaths) {
+				// get required PMA tokens for non-pma tokens
+				uint256[] memory path2Amount = uniswapRouterV2.getAmountsIn(_amount, path2);
+				// get required non-PMA tokens for PMA tokens
+				uint256[] memory path1Amount = uniswapRouterV2.getAmountsIn(path2Amount[0], path1);
 
-			// amount of tokens to get from user;
-			userPayableAmount = amountInMax[0];
+				userPayableAmount = path1Amount[0];
+				executionFee = (path1Amount[path1Amount.length - 1] * executionFeePercent) / 10000;
 
-			// execution fee
-			executionFee = (amountInMax[0] * registry.executionFee()) / 10000;
-			uint256 finalAmount = amountInMax[0] - executionFee;
+				uint256 finalAmount = path1Amount[path1Amount.length - 1] - executionFee;
 
-			uint256[] memory amountsOut = uniswapRouterV2.getAmountsOut(finalAmount, path);
+				uint256[] memory amountsOut = uniswapRouterV2.getAmountsOut(finalAmount, path2);
 
-			// amount of tokens merchent will get
-			if (path.length == 2) receivingAmount = amountsOut[1];
-			if (path.length == 3) receivingAmount = amountsOut[2];
+				receivingAmount = amountsOut[amountsOut.length - 1];
+			} else {
+				uint256[] memory amountInMax = uniswapRouterV2.getAmountsIn(_amount, path1);
+
+				userPayableAmount = amountInMax[0];
+
+				// transfer execution fee
+				if (_paymentToken == address(PMAToken)) {
+					// get execution fees in PMA
+					executionFee = (amountInMax[0] * executionFeePercent) / 10000;
+					uint256 finalAmount = amountInMax[0] - executionFee;
+
+					uint256[] memory amountsOut = uniswapRouterV2.getAmountsOut(finalAmount, path1);
+					receivingAmount = amountsOut[amountsOut.length - 1];
+				} else if (_settlementToken == address(PMAToken)) {
+					uint256[] memory amountsOut = uniswapRouterV2.getAmountsOut(amountInMax[0], path1);
+					executionFee = (amountsOut[amountsOut.length - 1] * executionFeePercent) / 10000;
+
+					receivingAmount = amountsOut[amountsOut.length - 1] - executionFee;
+				}
+			}
 		}
 	}
 
@@ -263,66 +235,103 @@ contract Executor is ReentrancyGuard, RegistryHelper, IExecutor, IVersionedContr
 		public
 		view
 		virtual
-		returns (bool canSWap, address[] memory path)
+		returns (
+			bool canSWap,
+			bool isTwoPaths,
+			address[] memory path1,
+			address[] memory path2
+		)
 	{
-		if (_fromToken != _toToken) {
-			if (
-				(_fromToken != address(PMAToken) && _toToken == address(PMAToken)) ||
-				(_fromToken == address(PMAToken) && _toToken != address(PMAToken))
-			) {
-				// check direct path for PMA
-				if (_haveReserve(IUniswapV2Pair(uniswapFactory.getPair(_fromToken, _toToken)))) {
+		address pma = address(PMAToken);
+
+		if (_fromToken == pma && _toToken == pma) {
+			canSWap = true;
+			return (canSWap, isTwoPaths, path1, path2);
+		}
+
+		address wbnb = registry.getWBNBToken();
+
+		// CASE: PMA -> non-PMA || non-PMA -> PMA
+		if (_fromToken == pma || _toToken == pma) {
+			// check direct path for PMA
+			if (_haveReserve(IUniswapV2Pair(uniswapFactory.getPair(_fromToken, _toToken)))) {
+				canSWap = true;
+
+				path1 = new address[](2);
+				path1[0] = _fromToken;
+				path1[1] = _toToken;
+			} else {
+				IUniswapV2Pair pair1 = IUniswapV2Pair(uniswapFactory.getPair(_fromToken, wbnb));
+				IUniswapV2Pair pair2 = IUniswapV2Pair(uniswapFactory.getPair(wbnb, _toToken));
+
+				if (_haveReserve(pair1) && _haveReserve(pair2)) {
 					canSWap = true;
 
-					path = new address[](2);
-					path[0] = _fromToken;
-					path[1] = _toToken;
-
-					return (canSWap, path);
+					path1 = new address[](3);
+					path1[0] = _fromToken;
+					path1[1] = wbnb;
+					path1[2] = _toToken;
 				}
 			}
+		} else {
+			// CASE: non-PMA token0 -> non-PMA token1
+			// 1. convert non-PMA token0 to PMA
+			// 2. convert PMA to non-PMA token1
 
 			// check path through the PMA
-			IUniswapV2Pair pair1 = IUniswapV2Pair(uniswapFactory.getPair(_fromToken, address(PMAToken)));
-			IUniswapV2Pair pair2 = IUniswapV2Pair(uniswapFactory.getPair(_toToken, address(PMAToken)));
+			IUniswapV2Pair pair1 = IUniswapV2Pair(uniswapFactory.getPair(_fromToken, pma));
+			IUniswapV2Pair pair2 = IUniswapV2Pair(uniswapFactory.getPair(pma, _toToken));
+
 			if (_haveReserve(pair1) && _haveReserve(pair2)) {
 				canSWap = true;
+				isTwoPaths = true;
 
-				path = new address[](3);
-				path[0] = _fromToken;
-				path[1] = address(PMAToken);
-				path[2] = _toToken;
+				path1 = new address[](2);
+				path1[0] = _fromToken;
+				path1[1] = pma;
 
-				return (canSWap, path);
-			}
+				path2 = new address[](2);
+				path2[0] = pma;
+				path2[1] = _toToken;
+			} else if (!_haveReserve(pair1) && _haveReserve(pair2)) {
+				// check path through the WBNB i.e token0 -> WBNB -> PMA
+				IUniswapV2Pair pair3 = IUniswapV2Pair(uniswapFactory.getPair(_fromToken, wbnb));
+				IUniswapV2Pair pair4 = IUniswapV2Pair(uniswapFactory.getPair(wbnb, _toToken));
 
-			// check direct path
-			address directPair = uniswapFactory.getPair(_fromToken, _toToken);
-			if (_haveReserve(IUniswapV2Pair(directPair))) {
-				canSWap = true;
+				if (_haveReserve(pair3) && _haveReserve(pair4)) {
+					canSWap = true;
+					isTwoPaths = true;
 
-				path = new address[](2);
-				path[0] = _fromToken;
-				path[1] = _toToken;
+					path1 = new address[](3);
+					path1[0] = _fromToken;
+					path1[1] = wbnb;
+					path1[2] = pma;
 
-				return (canSWap, path);
-			}
+					path2 = new address[](2);
+					path2[0] = pma;
+					path2[1] = _toToken;
+				}
+			} else if (_haveReserve(pair1) && !_haveReserve(pair2)) {
+				// check path through the WBNB i.e PMA -> WBNB -> token1
+				IUniswapV2Pair pair3 = IUniswapV2Pair(uniswapFactory.getPair(pma, wbnb));
+				IUniswapV2Pair pair4 = IUniswapV2Pair(uniswapFactory.getPair(wbnb, _toToken));
 
-			// check path through WBNB
-			address wbnb = registry.getWBNBToken();
-			pair1 = IUniswapV2Pair(uniswapFactory.getPair(_fromToken, wbnb));
-			pair2 = IUniswapV2Pair(uniswapFactory.getPair(_toToken, wbnb));
-			if (_haveReserve(pair1) && _haveReserve(pair2)) {
-				canSWap = true;
+				if (_haveReserve(pair3) && _haveReserve(pair4)) {
+					canSWap = true;
+					isTwoPaths = true;
 
-				path = new address[](3);
-				path[0] = _fromToken;
-				path[1] = address(wbnb);
-				path[2] = _toToken;
+					path1 = new address[](2);
+					path1[0] = _fromToken;
+					path1[1] = pma;
 
-				return (canSWap, path);
+					path2 = new address[](3);
+					path2[0] = pma;
+					path2[1] = wbnb;
+					path2[2] = _toToken;
+				}
 			}
 		}
+		return (canSWap, isTwoPaths, path1, path2);
 	}
 
 	/*
@@ -331,43 +340,139 @@ contract Executor is ReentrancyGuard, RegistryHelper, IExecutor, IVersionedContr
    	=======================================================================
  	*/
 
+	function _execute(
+		address settlementToken,
+		IBEP20 paymentToken,
+		address from,
+		address to,
+		uint256 amount
+	) internal {
+		(bool canSwap, bool isTwoPaths, address[] memory path1, address[] memory path2) = canSwapFromV2(
+			address(paymentToken),
+			settlementToken
+		);
+
+		require(canSwap, 'Executor: NO_SWAP_PATH_EXISTS');
+
+		uint256 executionFee;
+		uint256[] memory amounts;
+		uint256 finalAmount;
+
+		// This flow is executed when neither of the token is PMA token
+		if (isTwoPaths) {
+			// Case 2: non-PMA token0 ---> non-PMA token1 payment,
+			// 1. Get two paths for token conversion i.e non-PMA token0 ---> PMA && PMA ---> non-PMA token1
+			// 2. Get required amount of tokens from user
+			// 3. Swap token0 tokens to PMA tokens
+			// 4. Transfer execution fee in PMA
+			// 5. Swap remaining PMA to token1
+
+			uint256[] memory path2Amount = uniswapRouterV2.getAmountsIn(amount, path2);
+			uint256[] memory path1Amount = uniswapRouterV2.getAmountsIn(path2Amount[0], path1);
+
+			require(paymentToken.transferFrom(from, address(this), path1Amount[0]));
+
+			// Then we need to approve the payment token to be used by the Router
+			paymentToken.approve(address(uniswapRouterV2), path1Amount[0]);
+
+			amounts = uniswapRouterV2.swapExactTokensForTokens(
+				path1Amount[0], // amount in
+				1, // minimum out
+				path1, // swap path i.e non-PMA -> PMA|| mpm-PMA -> WBNB -> PMA
+				address(this), // token receiver
+				block.timestamp + deadline
+			);
+
+			// get execution fees in PMA
+			executionFee = _transferExecutionFee(IBEP20(address(PMAToken)), amounts[amounts.length - 1]);
+
+			finalAmount = amounts[amounts.length - 1] - executionFee;
+
+			// Then we need to approve the payment token to be used by the Router
+			paymentToken.approve(address(uniswapRouterV2), finalAmount);
+
+			uniswapRouterV2.swapExactTokensForTokens(
+				finalAmount, // amount in
+				1, // minimum out
+				path2, // swap path i.e non-PMA -> PMA|| mpm-PMA -> WBNB -> PMA
+				to, // token receiver
+				block.timestamp + deadline
+			);
+		} else {
+			// CASE 3: PMA -> non-PMA or non-PMA -> PMA
+			// 1. Get required amount of tokens from user
+			// 2. There are two cases
+			//  	a. payment token is PMA token
+			//			i. Transfer execution fee in PMA
+			//		 ii. Swap remaining PMA tokens to non-PMA tokens and transfer to merchant
+			//		b. settlement token is PMA token
+			//			i. Swap non-PMA tokens to PMA tokens
+			//		 ii. Transfer execution fee in PMA
+			//		iii. Transfer remaining PMA tokens to merchant
+
+			uint256[] memory amountInMax = uniswapRouterV2.getAmountsIn(amount, path1);
+
+			require(paymentToken.transferFrom(from, address(this), amountInMax[0]));
+
+			// transfer execution fee
+			if (address(paymentToken) == address(PMAToken)) {
+				// get execution fees in PMA
+				executionFee = _transferExecutionFee(paymentToken, amountInMax[0]);
+				finalAmount = amountInMax[0] - executionFee;
+
+				// Then we need to approve the payment token to be used by the Router
+				paymentToken.approve(address(uniswapRouterV2), finalAmount);
+
+				uniswapRouterV2.swapExactTokensForTokens(
+					finalAmount, // amount in
+					1, // minimum out
+					path1, // swap path i.e PMA->non-PMA || PMA -> WBNB -> non-PMA
+					to, // token receiver
+					block.timestamp + deadline
+				);
+			} else if (settlementToken == address(PMAToken)) {
+				// Then we need to approve the payment token to be used by the Router
+				paymentToken.approve(address(uniswapRouterV2), amountInMax[0]);
+
+				amounts = uniswapRouterV2.swapExactTokensForTokens(
+					amountInMax[0], // amount in
+					1, // minimum out
+					path1, // swap path i.e non-PMA -> PMA || non-PMA -> WBNB -> PMA
+					address(this), // token receiver
+					block.timestamp + deadline
+				);
+
+				// get execution fees in PMA
+				executionFee = _transferExecutionFee(IBEP20(settlementToken), amounts[amounts.length - 1]);
+
+				require(
+					paymentToken.transfer(to, amounts[amounts.length - 1] - executionFee),
+					'Executor: TRANSFER_FAILED'
+				);
+			}
+		}
+	}
+
 	/**
 	 * @notice This method calculates the execution fee and transfers it to the executionFee receiver
-	 * @param _from 					- user address
 	 * @param _paymentToken 	- payment token address
 	 * @param _amount					- amount of payment tokens
 	 */
-	function _transferExecutionFee(
-		address _from,
-		IBEP20 _paymentToken,
-		uint256 _amount
-	) internal virtual returns (uint256 executionFee) {
-		// get tokens from the user
-		require(_paymentToken.transferFrom(_from, address(this), _amount));
-
+	function _transferExecutionFee(IBEP20 _paymentToken, uint256 _amount)
+		internal
+		virtual
+		returns (uint256 executionFee)
+	{
+		require(address(_paymentToken) == address(PMAToken), 'Executor: INVALID_FEE_TOKEN');
 		// calculate exection fee
 		executionFee = (_amount * registry.executionFee()) / 10000;
 
 		// transfer execution Fee in PMA to executionFee receiver
 		if (executionFee > 0) {
-			if (address(_paymentToken) == address(PMAToken)) {
-				require(
-					_paymentToken.transfer(registry.executionFeeReceiver(), executionFee),
-					'Executor: TRANSFER_FAILED'
-				);
-			} else {
-				address[] memory path = new address[](2);
-				path[0] = address(_paymentToken);
-				path[1] = address(PMAToken);
-
-				uniswapRouterV2.swapExactTokensForTokens(
-					executionFee, // amount in
-					1, // minimum out
-					path, // swap path
-					registry.executionFeeReceiver(), // token receiver
-					block.timestamp + deadline
-				);
-			}
+			require(
+				_paymentToken.transfer(registry.executionFeeReceiver(), executionFee),
+				'Executor: TRANSFER_FAILED'
+			);
 		}
 
 		uint256 upKeepId = pullPaymentRegistry.upkeepIds(msg.sender);
