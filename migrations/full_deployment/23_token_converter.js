@@ -1,4 +1,3 @@
-const { deployProxy } = require('@openzeppelin/truffle-upgrades');
 const { saveAddress } = require('../scripts/saveAddress');
 
 const name = 'TokenConverter';
@@ -9,9 +8,8 @@ module.exports = async (deployer) => {
     const networkId = deployer.network_id.toString();
     const addresses = require(`../configurations/${networkId}/Addresses.json`);
 
-    const contract = await deployProxy(Contract, [addresses[networkId]['Registry']], {
-      initializer: 'initialize'
-    });
+    await deployer.deploy(Contract, addresses[networkId]['Registry']);
+    const contract = await Contract.deployed();
 
     console.log('TokenConverter Address: ', contract.address);
     await saveAddress(name, contract.address, networkId);

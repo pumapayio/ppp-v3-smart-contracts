@@ -169,7 +169,7 @@ const keeperRegistry = {
 	137: '0x02777053d6764996e594c3E88AF1D58D5363a2e6',
 	80001: '0x02777053d6764996e594c3E88AF1D58D5363a2e6' // USDT as BUSD
 };
-const ExecutionFeeReceiver = '0xb2A80b679F87530EdFB848708CA948cbF25Ca3e0';
+const ExecutionFeeReceiver = '0xb2A80b679F87530EdFB848708CA948cbF25Ca3e0'; // TODO - must be Token converter contract
 const ExecutionFee = 1000; // 10%
 
 module.exports = {

@@ -1,4 +1,3 @@
-const { deployProxy } = require('@openzeppelin/truffle-upgrades');
 const { saveAddress } = require('../scripts/saveAddress');
 
 const name = 'Executor';
@@ -9,13 +8,12 @@ module.exports = async (deployer) => {
 		const networkId = deployer.network_id.toString();
 		const addresses = require(`../configurations/${networkId}/Addresses.json`);
 
-		const executorDeployed = await deployProxy(
+		await deployer.deploy(
 			ExecutorContract,
-			[addresses[networkId]['Registry']],
-			{
-				initializer: 'initialize'
-			}
+			addresses[networkId]['Registry']
 		);
+
+		const executorDeployed = await ExecutorContract.deployed();
 
 		console.log('Executor Address: ', executorDeployed.address);
 		await saveAddress(name, executorDeployed.address, networkId);
