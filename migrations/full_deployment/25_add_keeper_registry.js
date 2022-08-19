@@ -1,4 +1,4 @@
-const { getDeployedContract } = require('../libs/utils');
+const { getRegistry } = require('../libs/utils');
 const { keeperRegistry } = require('../../configurations/config');
 
 module.exports = async (deployer) => {
@@ -6,7 +6,7 @@ module.exports = async (deployer) => {
     const networkId = deployer.network_id.toString();
 
     // Register executor
-    const registry = await getDeployedContract('Registry', artifacts);
+    const registry = await getRegistry(networkId, artifacts);
     await registry.setAddressFor('KeeperRegistry', keeperRegistry[networkId]);
   } catch (error) {
     console.log('error: ', error);

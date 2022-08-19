@@ -1,4 +1,4 @@
-const { getDeployedContract } = require('../libs/utils');
+const { getRegistry } = require('../libs/utils');
 
 module.exports = async (deployer) => {
   try {
@@ -6,7 +6,7 @@ module.exports = async (deployer) => {
     const addresses = require(`../configurations/${networkId}/Addresses.json`);
 
     // Register executor
-    const registry = await getDeployedContract('Registry', artifacts);
+    const registry = await getRegistry(networkId, artifacts);
     await registry.setAddressFor('TokenConverter', addresses[networkId]['TokenConverter']);
   } catch (error) {
     console.log('error: ', error);

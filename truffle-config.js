@@ -101,10 +101,13 @@ module.exports = {
 		mumbai: {
 			provider: () =>
 				new HDWalletProvider(mnemonic, 'https://matic-mumbai.chainstacklabs.com'),
+			// https://rpc-mumbai.maticvigil.com/
+			// https://matic-mumbai.chainstacklabs.com
 			network_id: 80001,
 			gasPrice: 10e9,
 			skipDryRun: true,
-			networkCheckTimeout: 20000000
+			networkCheckTimeout: 20000000,
+			timeoutBlocks: 200
 		}
 		// Useful for deploying to a public network.
 		// NB: It's important to wrap the provider as a function.
