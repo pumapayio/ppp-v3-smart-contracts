@@ -103,9 +103,11 @@ module.exports = {
 				new HDWalletProvider(mnemonic, 'https://matic-mumbai.chainstacklabs.com'),
 			// https://rpc-mumbai.maticvigil.com/
 			// https://matic-mumbai.chainstacklabs.com
+			// https://rpc-mumbai.matic.today
 			network_id: 80001,
-			gasPrice: 10e9,
+			gasPrice: 50e9,
 			skipDryRun: true,
+			timeout: 20000000,
 			networkCheckTimeout: 20000000,
 			timeoutBlocks: 200
 		}

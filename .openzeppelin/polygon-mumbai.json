@@ -19,6 +19,16 @@
       "address": "0xCeb932A22A44849Be9F9d78F7921e8d55C94B24f",
       "txHash": "0x678080bbe56b3ad126321c48bdfd34520b719c9b5bb34c5a6337ddcf53b90530",
       "kind": "transparent"
+    },
+    {
+      "address": "0x1C9e2aF1B6A16d92524623545CBa67c48759F3D2",
+      "txHash": "0x23706d4b78b1b621a6d8acbc82c0a58fbc9d4ef36e6d84e028786554d93b868a",
+      "kind": "transparent"
+    },
+    {
+      "address": "0x38091d05b0F80731650E00E7e04BbF7DE3DCF228",
+      "txHash": "0xce6bb31a78b2ba113bb3a04788539410b379ed3a9e59e2eea6501169cd790b29",
+      "kind": "transparent"
     }
   ],
   "impls": {
@@ -294,6 +304,101 @@
           },
           "t_bool": {
             "label": "bool"
+          }
+        }
+      }
+    },
+    "1d74ce62aae37afce8b4bf4b54ae235f88f07d2b2ead6f88a7eb5eb7603d5082": {
+      "address": "0x3da4e7D061cA33A1c4adC3b166E0f4f121541764",
+      "txHash": "0x4316faf4819a5c75498279891f51c8c135ef3afa07c7c532b539c1b35a1a03be",
+      "layout": {
+        "storage": [
+          {
+            "contract": "Initializable",
+            "label": "_initialized",
+            "type": "t_uint8",
+            "src": "../@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:62",
+            "retypedFrom": "bool"
+          },
+          {
+            "contract": "Initializable",
+            "label": "_initializing",
+            "type": "t_bool",
+            "src": "../@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:67"
+          },
+          {
+            "contract": "ContextUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "../@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:36"
+          },
+          {
+            "contract": "OwnableUpgradeable",
+            "label": "_owner",
+            "type": "t_address",
+            "src": "../@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:22"
+          },
+          {
+            "contract": "OwnableUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "../@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:94"
+          },
+          {
+            "contract": "PullPaymentsRegistry",
+            "label": "BATCH_SIZE",
+            "type": "t_uint256",
+            "src": "../project:/contracts/common/PullPaymentsRegistry.sol:19"
+          },
+          {
+            "contract": "PullPaymentsRegistry",
+            "label": "registry",
+            "type": "t_mapping(t_bytes32,t_address)",
+            "src": "../project:/contracts/common/PullPaymentsRegistry.sol:21"
+          },
+          {
+            "contract": "PullPaymentsRegistry",
+            "label": "executors",
+            "type": "t_mapping(t_address,t_bool)",
+            "src": "../project:/contracts/common/PullPaymentsRegistry.sol:22"
+          },
+          {
+            "contract": "PullPaymentsRegistry",
+            "label": "upkeepIds",
+            "type": "t_mapping(t_address,t_uint256)",
+            "src": "../project:/contracts/common/PullPaymentsRegistry.sol:25"
+          }
+        ],
+        "types": {
+          "t_uint256": {
+            "label": "uint256"
+          },
+          "t_mapping(t_bytes32,t_address)": {
+            "label": "mapping(bytes32 => address)"
+          },
+          "t_bytes32": {
+            "label": "bytes32"
+          },
+          "t_address": {
+            "label": "address"
+          },
+          "t_mapping(t_address,t_bool)": {
+            "label": "mapping(address => bool)"
+          },
+          "t_bool": {
+            "label": "bool"
+          },
+          "t_mapping(t_address,t_uint256)": {
+            "label": "mapping(address => uint256)"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]"
+          },
+          "t_uint8": {
+            "label": "uint8"
           }
         }
       }
