@@ -1,0 +1,208 @@
+{
+  "manifestVersion": "3.2",
+  "admin": {
+    "address": "0xa23C644Ff2B71a85FF8bf549C90e0c22f90906f4",
+    "txHash": "0xb11faa435723d73b18ccb451e6af86bb361779af657ac9e062ba8e2a419eac4d"
+  },
+  "proxies": [
+    {
+      "address": "0x881231F14AF970910Da01d856d99C7235D6E4045",
+      "txHash": "0x7f613588813973cbf3a957bac89d95e2320f1c14c37979a6756716719655ce95",
+      "kind": "transparent"
+    },
+    {
+      "address": "0xee444C340Fa7A0D97475313AE2a4BB4EE15Feb65",
+      "txHash": "0x5f0a39341eed7837d87762935723e7cf24831e2995302af1f458d80083ede163",
+      "kind": "transparent"
+    }
+  ],
+  "impls": {
+    "02d401b839dab928e6d6b69a0f7071122772f98b95f244420a332c89c732dead": {
+      "address": "0x318BD91D3Cd829e781e8cd4e538B6125548De661",
+      "txHash": "0xfc8e243094266c09caf6f74b077ef8eecad29e2bcf14df7b1e746e5efb38a583",
+      "layout": {
+        "storage": [
+          {
+            "contract": "Initializable",
+            "label": "_initialized",
+            "type": "t_uint8",
+            "src": "../@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:62",
+            "retypedFrom": "bool"
+          },
+          {
+            "contract": "Initializable",
+            "label": "_initializing",
+            "type": "t_bool",
+            "src": "../@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:67"
+          },
+          {
+            "contract": "ContextUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "../@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:36"
+          },
+          {
+            "contract": "OwnableUpgradeable",
+            "label": "_owner",
+            "type": "t_address",
+            "src": "../@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:22"
+          },
+          {
+            "contract": "OwnableUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "../@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:94"
+          },
+          {
+            "contract": "CoreRegistry",
+            "label": "mainRegistry",
+            "type": "t_mapping(t_bytes32,t_address)",
+            "src": "../project:/contracts/common/CoreRegistry.sol:23"
+          },
+          {
+            "contract": "PullPaymentConfig",
+            "label": "executionFeeReceiver",
+            "type": "t_address",
+            "src": "../project:/contracts/common/PullPaymentConfig.sol:21"
+          },
+          {
+            "contract": "PullPaymentConfig",
+            "label": "executionFee",
+            "type": "t_uint256",
+            "src": "../project:/contracts/common/PullPaymentConfig.sol:24"
+          },
+          {
+            "contract": "PullPaymentConfig",
+            "label": "supportedTokens",
+            "type": "t_array(t_address)dyn_storage",
+            "src": "../project:/contracts/common/PullPaymentConfig.sol:27"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address"
+          },
+          "t_uint256": {
+            "label": "uint256"
+          },
+          "t_array(t_address)dyn_storage": {
+            "label": "address[]"
+          },
+          "t_mapping(t_bytes32,t_address)": {
+            "label": "mapping(bytes32 => address)"
+          },
+          "t_bytes32": {
+            "label": "bytes32"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]"
+          },
+          "t_uint8": {
+            "label": "uint8"
+          },
+          "t_bool": {
+            "label": "bool"
+          }
+        }
+      }
+    },
+    "1d74ce62aae37afce8b4bf4b54ae235f88f07d2b2ead6f88a7eb5eb7603d5082": {
+      "address": "0x5Ee996b16D9F60B3c5204c5B624EB4Ea7B81d393",
+      "txHash": "0x8e6e92ffdd2c3604e7f7e813cc15c683c2e7cbf6354ae5106c07ddd13361a2ca",
+      "layout": {
+        "storage": [
+          {
+            "contract": "Initializable",
+            "label": "_initialized",
+            "type": "t_uint8",
+            "src": "../@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:62",
+            "retypedFrom": "bool"
+          },
+          {
+            "contract": "Initializable",
+            "label": "_initializing",
+            "type": "t_bool",
+            "src": "../@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:67"
+          },
+          {
+            "contract": "ContextUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)50_storage",
+            "src": "../@openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol:36"
+          },
+          {
+            "contract": "OwnableUpgradeable",
+            "label": "_owner",
+            "type": "t_address",
+            "src": "../@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:22"
+          },
+          {
+            "contract": "OwnableUpgradeable",
+            "label": "__gap",
+            "type": "t_array(t_uint256)49_storage",
+            "src": "../@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:94"
+          },
+          {
+            "contract": "PullPaymentsRegistry",
+            "label": "BATCH_SIZE",
+            "type": "t_uint256",
+            "src": "../project:/contracts/common/PullPaymentsRegistry.sol:19"
+          },
+          {
+            "contract": "PullPaymentsRegistry",
+            "label": "registry",
+            "type": "t_mapping(t_bytes32,t_address)",
+            "src": "../project:/contracts/common/PullPaymentsRegistry.sol:21"
+          },
+          {
+            "contract": "PullPaymentsRegistry",
+            "label": "executors",
+            "type": "t_mapping(t_address,t_bool)",
+            "src": "../project:/contracts/common/PullPaymentsRegistry.sol:22"
+          },
+          {
+            "contract": "PullPaymentsRegistry",
+            "label": "upkeepIds",
+            "type": "t_mapping(t_address,t_uint256)",
+            "src": "../project:/contracts/common/PullPaymentsRegistry.sol:25"
+          }
+        ],
+        "types": {
+          "t_uint256": {
+            "label": "uint256"
+          },
+          "t_mapping(t_bytes32,t_address)": {
+            "label": "mapping(bytes32 => address)"
+          },
+          "t_bytes32": {
+            "label": "bytes32"
+          },
+          "t_address": {
+            "label": "address"
+          },
+          "t_mapping(t_address,t_bool)": {
+            "label": "mapping(address => bool)"
+          },
+          "t_bool": {
+            "label": "bool"
+          },
+          "t_mapping(t_address,t_uint256)": {
+            "label": "mapping(address => uint256)"
+          },
+          "t_array(t_uint256)49_storage": {
+            "label": "uint256[49]"
+          },
+          "t_array(t_uint256)50_storage": {
+            "label": "uint256[50]"
+          },
+          "t_uint8": {
+            "label": "uint8"
+          }
+        }
+      }
+    }
+  }
+}
