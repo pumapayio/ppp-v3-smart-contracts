@@ -6,13 +6,13 @@ const { addLiquidity } = require('./helpers/swap');
 
 const { MaxUint256 } = require('@ethersproject/constants');
 
-const { expectEvent, expectRevert, ether } = require('@openzeppelin/test-helpers');
+const { expectEvent, expectRevert, ether, BN } = require('@openzeppelin/test-helpers');
 const { MAX_UINT256 } = require('@openzeppelin/test-helpers/src/constants');
 
 const BlockData = artifacts.require('BlockData');
 
 // Start test block
-contract.skip('Swap Executor', (accounts) => {
+contract('Swap Executor', (accounts) => {
 	let [owner, merchant, customer, user, fundRceiver] = accounts;
 
 	const billingModel = {
@@ -155,6 +155,7 @@ contract.skip('Swap Executor', (accounts) => {
 			const tx = await this.contract.subscribeToBillingModel(
 				currentBillingModelId,
 				pmaToken.address,
+				'',
 				{
 					from: customer
 				}
@@ -206,12 +207,12 @@ contract.skip('Swap Executor', (accounts) => {
 
 			await wbnb.approve(executor.address, MaxUint256, { from: customer });
 
-			const tx = await this.contract.subscribeToBillingModel(currentBillingModelId, wbnb.address, {
+			const tx = await this.contract.subscribeToBillingModel(currentBillingModelId, wbnb.address, '', {
 				from: customer
 			});
 
 			const adaTokenBalAfter = await adaToken.balanceOf(merchant);
-			const fundRceiverBalAfter = await wbnb.balanceOf(fundRceiver);
+			const fundRceiverBalAfter = await pmaToken.balanceOf(fundRceiver);
 			const userBalAfter = await wbnb.balanceOf(customer);
 
 			await expectEvent(tx, 'NewSubscription');
@@ -220,10 +221,10 @@ contract.skip('Swap Executor', (accounts) => {
 			expect(fundRceiverBalAfter).to.bignumber.be.eq(fundRceiverBalBefore.add(amounts[2]));
 		});
 
-		it('should subscribe billing model with ADA when ADA is settlement token (non-PMA -> non-PMA) ', async () => {
+		it('should subscribe billing model with ADA when WBNB is settlement token (non-PMA -> non-PMA) ', async () => {
 			const amounts = await executor.getReceivingAmount(
 				adaToken.address,
-				adaToken.address,
+				wbnb.address,
 				ether('10')
 			);
 
@@ -236,7 +237,7 @@ contract.skip('Swap Executor', (accounts) => {
 				amounts[2].toString()
 			);
 
-			billingModel.token = adaToken.address;
+			billingModel.token = wbnb.address;
 			await this.contract.createBillingModel(
 				billingModel.payee,
 				billingModel.name,
@@ -248,8 +249,8 @@ contract.skip('Swap Executor', (accounts) => {
 				{ from: merchant }
 			);
 
-			const adaTokenBalBefore = await adaToken.balanceOf(merchant);
-			const fundRceiverBalBefore = await adaToken.balanceOf(fundRceiver);
+			const wbnbTokenBalBefore = await wbnb.balanceOf(merchant);
+			const fundRceiverBalBefore = await pmaToken.balanceOf(fundRceiver);
 			const userBalBefore = await adaToken.balanceOf(customer);
 
 			const currentBillingModelId = await this.contract.getCurrentBillingModelId();
@@ -259,25 +260,32 @@ contract.skip('Swap Executor', (accounts) => {
 			const tx = await this.contract.subscribeToBillingModel(
 				currentBillingModelId,
 				adaToken.address,
+				'',
 				{
 					from: customer
 				}
 			);
 
-			const adaTokenBalAfter = await adaToken.balanceOf(merchant);
-			const fundRceiverBalAfter = await adaToken.balanceOf(fundRceiver);
+			const wbnbTokenBalAfter = await wbnb.balanceOf(merchant);
+			const fundRceiverBalAfter = await pmaToken.balanceOf(fundRceiver);
 			const userBalAfter = await adaToken.balanceOf(customer);
 
 			await expectEvent(tx, 'NewSubscription');
-			expect(adaTokenBalAfter).to.bignumber.be.eq(adaTokenBalBefore.add(amounts[0]));
+			expect(wbnbTokenBalAfter).to.bignumber.be.eq(wbnbTokenBalBefore.add(amounts[0]));
 			expect(userBalAfter).to.bignumber.be.eq(userBalBefore.sub(amounts[1]));
 			expect(fundRceiverBalAfter).to.bignumber.be.eq(fundRceiverBalBefore.add(amounts[2]));
 		});
 
-		it('should not subscribe billing model with ADA when ETH is settlement token (non-PMA -> non-PMA) as no liquidity pool available for swap ', async () => {
-			await expectRevert(
-				executor.getReceivingAmount(adaToken.address, ethToken.address, ether('10')),
-				'Executor: NO_SWAP_PATH_EXISTS'
+		it('should subscribe billing model with ADA when ETH is settlement token (non-PMA -> non-PMA)', async () => {
+			const amounts = await executor.getReceivingAmount(adaToken.address, ethToken.address, ether('10'));
+
+			console.log(
+				'receiverAmount: ',
+				amounts[0].toString(),
+				' userPayableAmount: ',
+				amounts[1].toString(),
+				' executionFee: ',
+				amounts[2].toString()
 			);
 
 			billingModel.token = ethToken.address;
@@ -292,15 +300,25 @@ contract.skip('Swap Executor', (accounts) => {
 				{ from: merchant }
 			);
 
+			const adaTokenBalBefore = await adaToken.balanceOf(merchant);
+			const fundRceiverBalBefore = await pmaToken.balanceOf(fundRceiver);
+			const userBalBefore = await adaToken.balanceOf(customer);
+
 			const currentBillingModelId = await this.contract.getCurrentBillingModelId();
 
 			await adaToken.approve(executor.address, MaxUint256, { from: customer });
-			await expectRevert(
-				this.contract.subscribeToBillingModel(currentBillingModelId, adaToken.address, {
-					from: customer
-				}),
-				'Executor: NO_SWAP_PATH_EXISTS'
-			);
+			await this.contract.subscribeToBillingModel(currentBillingModelId, adaToken.address, '', {
+				from: customer
+			});
+
+			const adaTokenBalAfter = await adaToken.balanceOf(merchant);
+			const fundRceiverBalAfter = await pmaToken.balanceOf(fundRceiver);
+			const userBalAfter = await adaToken.balanceOf(customer);
+
+			expect(adaTokenBalAfter).to.bignumber.be.eq(adaTokenBalBefore.add(amounts[0]));
+			expect(userBalAfter).to.bignumber.be.eq(userBalBefore.sub(amounts[1]));
+			expect(fundRceiverBalAfter).to.bignumber.be.eq(fundRceiverBalBefore.add(amounts[2]));
+
 		});
 
 		it('should subscribe billing model with WBNB when PMA is settlement token (non-PMA -> PMA)', async () => {
@@ -332,18 +350,18 @@ contract.skip('Swap Executor', (accounts) => {
 			);
 
 			const pmaTokenBalBefore = await pmaToken.balanceOf(merchant);
-			const fundRceiverBalBefore = await wbnb.balanceOf(fundRceiver);
+			const fundRceiverBalBefore = await pmaToken.balanceOf(fundRceiver);
 			const userBalBefore = await wbnb.balanceOf(customer);
 
 			const currentBillingModelId = await this.contract.getCurrentBillingModelId();
 
 			await wbnb.approve(executor.address, MaxUint256, { from: customer });
-			const tx = await this.contract.subscribeToBillingModel(currentBillingModelId, wbnb.address, {
+			const tx = await this.contract.subscribeToBillingModel(currentBillingModelId, wbnb.address, '', {
 				from: customer
 			});
 
 			const pmaTokenAfter = await pmaToken.balanceOf(merchant);
-			const fundRceiverBalAfter = await wbnb.balanceOf(fundRceiver);
+			const fundRceiverBalAfter = await pmaToken.balanceOf(fundRceiver);
 			const userBalAfter = await wbnb.balanceOf(customer);
 
 			expect(pmaTokenAfter).to.bignumber.be.eq(pmaTokenBalBefore.add(amounts[0]));
@@ -393,13 +411,14 @@ contract.skip('Swap Executor', (accounts) => {
 			const tx = await this.contract.subscribeToBillingModel(
 				currentBillingModelId,
 				adaToken.address,
+				'',
 				{
 					from: customer
 				}
 			);
 
 			const adaTokenBalAfter = await adaToken.balanceOf(merchant);
-			const fundRceiverBalAfter = await adaToken.balanceOf(fundRceiver);
+			const fundRceiverBalAfter = await pmaToken.balanceOf(fundRceiver);
 			const userBalAfter = await adaToken.balanceOf(customer);
 
 			console.log('beofre: ', adaTokenBalBefore.toString());
@@ -413,21 +432,13 @@ contract.skip('Swap Executor', (accounts) => {
 			await expectEvent(tx, 'NewSubscription');
 		});
 
-		it('should subscribe billing model with ETH when ETH is settlement token (ETH -> ETH)', async () => {
-			const amounts = await executor.getReceivingAmount(
+		it('should not subscribe billing model when there is no path through the PMA i.e  when ETH is settlement and payment token (ETH -> ETH)', async () => {
+			await expectRevert(executor.getReceivingAmount(
 				ethToken.address,
 				ethToken.address,
 				billingModel.amount
-			);
+			), 'Executor: NO_SWAP_PATH_EXISTS');
 
-			console.log(
-				'receiverAmount: ',
-				amounts[0].toString(),
-				' userPayableAmount: ',
-				amounts[1].toString(),
-				' executionFee: ',
-				amounts[2].toString()
-			);
 
 			billingModel.token = ethToken.address;
 			await this.contract.createBillingModel(
@@ -442,33 +453,19 @@ contract.skip('Swap Executor', (accounts) => {
 			);
 
 			await ethToken.approve(this.router.address, MAX_UINT256, { from: customer });
-			const canSwap = await executor.canSwapFromV2(ethToken.address, ethToken.address);
-			console.log('canswap: ', canSwap);
-
-			const ethTokenBalBefore = await ethToken.balanceOf(merchant);
-			const fundRceiverBalBefore = await ethToken.balanceOf(fundRceiver);
-			const userBalBefore = await ethToken.balanceOf(customer);
 
 			const currentBillingModelId = await this.contract.getCurrentBillingModelId();
 
 			await ethToken.approve(executor.address, MaxUint256, { from: customer });
-			const tx = await this.contract.subscribeToBillingModel(
+			await expectRevert(this.contract.subscribeToBillingModel(
 				currentBillingModelId,
 				ethToken.address,
+				'',
 				{
 					from: customer
 				}
-			);
+			), 'Executor: NO_SWAP_PATH_EXISTS');
 
-			const ethTokenBalAfter = await ethToken.balanceOf(merchant);
-			const fundRceiverBalAfter = await ethToken.balanceOf(fundRceiver);
-			const userBalAfter = await ethToken.balanceOf(customer);
-
-			expect(ethTokenBalAfter).to.bignumber.be.eq(ethTokenBalBefore.add(amounts[0]));
-			expect(userBalAfter).to.bignumber.be.eq(userBalBefore.sub(amounts[1]));
-			expect(fundRceiverBalAfter).to.bignumber.be.eq(fundRceiverBalBefore.add(amounts[2]));
-
-			await expectEvent(tx, 'NewSubscription');
 		});
 
 		it('should subscribe billing model with PMA when WBNB is settlement token (PMA -> non-PMA)', async () => {
@@ -508,6 +505,7 @@ contract.skip('Swap Executor', (accounts) => {
 			const tx = await this.contract.subscribeToBillingModel(
 				currentBillingModelId,
 				pmaToken.address,
+				'',
 				{
 					from: customer
 				}
@@ -528,86 +526,131 @@ contract.skip('Swap Executor', (accounts) => {
 	describe('canSwapFromV2()', () => {
 		it('can swap ADA -> ADA', async () => {
 			const canSwap = await executor.canSwapFromV2(adaToken.address, adaToken.address);
-			expect(canSwap[0]).to.be.eq(false);
-			expect(canSwap[1]).to.be.empty;
+			expect(canSwap[0]).to.be.eq(true);
+			expect(canSwap[1]).to.be.eq(true);
+			expect(canSwap[2][0]).to.be.eq(adaToken.address.toString());
+			expect(canSwap[2][1]).to.be.eq(pmaToken.address.toString());
+			expect(canSwap[3][0]).to.be.eq(pmaToken.address.toString());
+			expect(canSwap[3][1]).to.be.eq(adaToken.address.toString());
 		});
+
 		it('can swap WBNB -> WBNB', async () => {
 			const canSwap = await executor.canSwapFromV2(wbnb.address, wbnb.address);
 
-			expect(canSwap[0]).to.be.eq(false);
-			expect(canSwap[1]).to.be.empty;
+			expect(canSwap[0]).to.be.eq(true);
+			expect(canSwap[1]).to.be.eq(true);
+			expect(canSwap[2][0]).to.be.eq(wbnb.address.toString());
+			expect(canSwap[2][1]).to.be.eq(pmaToken.address.toString());
+			expect(canSwap[3][0]).to.be.eq(pmaToken.address.toString());
+			expect(canSwap[3][1]).to.be.eq(wbnb.address.toString());
 		});
+
 		it('can swap WBNB -> PMA', async () => {
 			const canSwap = await executor.canSwapFromV2(wbnb.address, pmaToken.address);
 			expect(canSwap[0]).to.be.eq(true);
-			expect(canSwap[1][0]).to.be.eq(wbnb.address);
-			expect(canSwap[1][1]).to.be.eq(pmaToken.address);
+			expect(canSwap[1]).to.be.eq(false);
+			expect(canSwap[2][0]).to.be.eq(wbnb.address);
+			expect(canSwap[2][1]).to.be.eq(pmaToken.address);
+			expect(canSwap[3]).to.be.empty;
 		});
 
-		it('can swap ADA -> ADA', async () => {
-			const canSwap = await executor.canSwapFromV2(adaToken.address, adaToken.address);
-			expect(canSwap[0]).to.be.eq(false);
-			expect(canSwap[1]).to.be.empty;
+		it('can swap PMA -> ETH', async () => {
+			const canSwap = await executor.canSwapFromV2(pmaToken.address, ethToken.address);
+			expect(canSwap[0]).to.be.eq(true);
+			expect(canSwap[1]).to.be.eq(false);
+			expect(canSwap[2][0]).to.be.eq(pmaToken.address);
+			expect(canSwap[2][1]).to.be.eq(wbnb.address);
+			expect(canSwap[2][2]).to.be.eq(ethToken.address);
+			expect(canSwap[3]).to.be.empty;
 		});
 
 		it('can swap ADA -> ETH', async () => {
 			const canSwap = await executor.canSwapFromV2(adaToken.address, ethToken.address);
-			expect(canSwap[0]).to.be.eq(false);
-			expect(canSwap[1]).to.be.empty;
+			expect(canSwap[0]).to.be.eq(true);
+			expect(canSwap[1]).to.be.eq(true);
+			expect(canSwap[2][0]).to.be.eq(adaToken.address.toString());
+			expect(canSwap[2][1]).to.be.eq(pmaToken.address.toString());
+			expect(canSwap[3][0]).to.be.eq(pmaToken.address.toString());
+			expect(canSwap[3][1]).to.be.eq(wbnb.address.toString());
+			expect(canSwap[3][2]).to.be.eq(ethToken.address.toString());
 		});
 
 		it('can swap PMA -> WBNB', async () => {
 			const canSwap = await executor.canSwapFromV2(pmaToken.address, wbnb.address);
 			expect(canSwap[0]).to.be.eq(true);
-			expect(canSwap[1][0]).to.be.eq(pmaToken.address);
-			expect(canSwap[1][1]).to.be.eq(wbnb.address);
+			expect(canSwap[1]).to.be.eq(false);
+			expect(canSwap[2][0]).to.be.eq(pmaToken.address);
+			expect(canSwap[2][1]).to.be.eq(wbnb.address);
+			expect(canSwap[3]).to.be.empty;
 		});
 
 		it('can swap PMA -> ADA', async () => {
 			const canSwap = await executor.canSwapFromV2(pmaToken.address, adaToken.address);
 			expect(canSwap[0]).to.be.eq(true);
-			expect(canSwap[1][0]).to.be.eq(pmaToken.address);
-			expect(canSwap[1][1]).to.be.eq(adaToken.address);
+			expect(canSwap[1]).to.be.eq(false);
+			expect(canSwap[2][0]).to.be.eq(pmaToken.address);
+			expect(canSwap[2][1]).to.be.eq(adaToken.address);
+			expect(canSwap[3]).to.be.empty;
 		});
 
 		it('can swap ADA -> PMA', async () => {
 			const canSwap = await executor.canSwapFromV2(adaToken.address, pmaToken.address);
 			expect(canSwap[0]).to.be.eq(true);
-			expect(canSwap[1][0]).to.be.eq(adaToken.address);
-			expect(canSwap[1][1]).to.be.eq(pmaToken.address);
+			expect(canSwap[1]).to.be.eq(false);
+			expect(canSwap[2][0]).to.be.eq(adaToken.address);
+			expect(canSwap[2][1]).to.be.eq(pmaToken.address);
+			expect(canSwap[3]).to.be.empty;
 		});
 
 		it('can swap ADA -> WBNB', async () => {
 			const canSwap = await executor.canSwapFromV2(adaToken.address, wbnb.address);
 			expect(canSwap[0]).to.be.eq(true);
-			expect(canSwap[1][0]).to.be.eq(adaToken.address);
-			expect(canSwap[1][1]).to.be.eq(pmaToken.address);
-			expect(canSwap[1][2]).to.be.eq(wbnb.address);
+			expect(canSwap[1]).to.be.eq(true);
+			expect(canSwap[2][0]).to.be.eq(adaToken.address);
+			expect(canSwap[2][1]).to.be.eq(pmaToken.address);
+			expect(canSwap[3][0]).to.be.eq(pmaToken.address);
+			expect(canSwap[3][1]).to.be.eq(wbnb.address);
 		});
 
 		it('can swap WBNB -> ADA', async () => {
 			const canSwap = await executor.canSwapFromV2(wbnb.address, adaToken.address);
 			expect(canSwap[0]).to.be.eq(true);
-			expect(canSwap[1][0]).to.be.eq(wbnb.address);
-			expect(canSwap[1][1]).to.be.eq(pmaToken.address);
-			expect(canSwap[1][2]).to.be.eq(adaToken.address);
+			expect(canSwap[1]).to.be.eq(true);
+			expect(canSwap[2][0]).to.be.eq(wbnb.address);
+			expect(canSwap[2][1]).to.be.eq(pmaToken.address);
+			expect(canSwap[3][0]).to.be.eq(pmaToken.address);
+			expect(canSwap[3][1]).to.be.eq(adaToken.address);
 		});
 
-		it('shold not swap ADA -> ETH', async () => {
-			const canSwap = await executor.canSwapFromV2(adaToken.address, ethToken.address);
-			expect(canSwap[0]).to.be.eq(false);
-		});
 
 		it('should not swap ETH -> ADA', async () => {
 			const canSwap = await executor.canSwapFromV2(ethToken.address, adaToken.address);
-			expect(canSwap[0]).to.be.eq(false);
+			expect(canSwap[0]).to.be.eq(true);
+			expect(canSwap[1]).to.be.eq(true);
+			expect(canSwap[2][0]).to.be.eq(ethToken.address);
+			expect(canSwap[2][1]).to.be.eq(wbnb.address);
+			expect(canSwap[2][2]).to.be.eq(pmaToken.address);
+			expect(canSwap[3][0]).to.be.eq(pmaToken.address);
+			expect(canSwap[3][1]).to.be.eq(adaToken.address);
 		});
 
 		it('can swap ETH -> WBNB', async () => {
 			const canSwap = await executor.canSwapFromV2(ethToken.address, wbnb.address);
 			expect(canSwap[0]).to.be.eq(true);
-			expect(canSwap[1][0]).to.be.eq(ethToken.address);
-			expect(canSwap[1][1]).to.be.eq(wbnb.address);
+			expect(canSwap[1]).to.be.eq(true);
+			expect(canSwap[2][0]).to.be.eq(ethToken.address);
+			expect(canSwap[2][1]).to.be.eq(wbnb.address);
+			expect(canSwap[2][2]).to.be.eq(pmaToken.address);
+			expect(canSwap[3][0]).to.be.eq(pmaToken.address);
+			expect(canSwap[3][1]).to.be.eq(wbnb.address);
+		});
+
+		it('should not swap with ETH -> ETH', async () => {
+			const canSwap = await executor.canSwapFromV2(ethToken.address, ethToken.address);
+			expect(canSwap[0]).to.be.eq(false);
+			expect(canSwap[1]).to.be.eq(false);
+			expect(canSwap[2]).to.be.empty;
+			expect(canSwap[3]).to.be.empty;
 		});
 	});
 });

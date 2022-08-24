@@ -196,9 +196,10 @@ contract Executor is ReentrancyGuard, RegistryHelper, IExecutor, IVersionedContr
 				userPayableAmount = path1Amount[0];
 				executionFee = (path1Amount[path1Amount.length - 1] * executionFeePercent) / 10000;
 
-				uint256 finalAmount = path1Amount[path1Amount.length - 1] - executionFee;
-
-				uint256[] memory amountsOut = uniswapRouterV2.getAmountsOut(finalAmount, path2);
+				uint256[] memory amountsOut = uniswapRouterV2.getAmountsOut(
+					path1Amount[path1Amount.length - 1] - executionFee,
+					path2
+				);
 
 				receivingAmount = amountsOut[amountsOut.length - 1];
 			} else {
@@ -296,7 +297,7 @@ contract Executor is ReentrancyGuard, RegistryHelper, IExecutor, IVersionedContr
 			} else if (!_haveReserve(pair1) && _haveReserve(pair2)) {
 				// check path through the WBNB i.e token0 -> WBNB -> PMA
 				IUniswapV2Pair pair3 = IUniswapV2Pair(uniswapFactory.getPair(_fromToken, wbnb));
-				IUniswapV2Pair pair4 = IUniswapV2Pair(uniswapFactory.getPair(wbnb, _toToken));
+				IUniswapV2Pair pair4 = IUniswapV2Pair(uniswapFactory.getPair(wbnb, pma));
 
 				if (_haveReserve(pair3) && _haveReserve(pair4)) {
 					canSWap = true;
@@ -388,8 +389,8 @@ contract Executor is ReentrancyGuard, RegistryHelper, IExecutor, IVersionedContr
 
 			finalAmount = amounts[amounts.length - 1] - executionFee;
 
-			// Then we need to approve the payment token to be used by the Router
-			paymentToken.approve(address(uniswapRouterV2), finalAmount);
+			// Then we need to approve the PMA token to be used by the Router
+			PMAToken.approve(address(uniswapRouterV2), finalAmount);
 
 			uniswapRouterV2.swapExactTokensForTokens(
 				finalAmount, // amount in
@@ -446,7 +447,7 @@ contract Executor is ReentrancyGuard, RegistryHelper, IExecutor, IVersionedContr
 				executionFee = _transferExecutionFee(IBEP20(settlementToken), amounts[amounts.length - 1]);
 
 				require(
-					paymentToken.transfer(to, amounts[amounts.length - 1] - executionFee),
+					PMAToken.transfer(to, amounts[amounts.length - 1] - executionFee),
 					'Executor: TRANSFER_FAILED'
 				);
 			}
@@ -475,11 +476,11 @@ contract Executor is ReentrancyGuard, RegistryHelper, IExecutor, IVersionedContr
 			);
 		}
 
-		uint256 upKeepId = pullPaymentRegistry.upkeepIds(msg.sender);
+		// uint256 upKeepId = pullPaymentRegistry.upkeepIds(msg.sender);
 
-		require(upKeepId > 0, 'EXECUTOR:INVALID_UPKEEP_ID');
+		// require(upKeepId > 0, 'EXECUTOR:INVALID_UPKEEP_ID');
 
-		ITokenConverter(registry.getTokenConverter()).topupUpkeep(upKeepId);
+		// ITokenConverter(registry.getTokenConverter()).topupUpkeep(upKeepId);
 	}
 
 	/**

@@ -19,14 +19,16 @@
  *
  */
 
-const { mnemonic, BSCSCAN_API_KEY, infuraApiKey } = require('./secrets.json');
+const { mnemonic, BSCSCAN_API_KEY, ETHERSCAN_API_KEY, POLYSCAN_API_KEY, infuraApiKey } = require('./secrets.json');
 const test_data = require('./secrets.test.json');
 const HDWalletProvider = require('@truffle/hdwallet-provider');
 
 module.exports = {
 	plugins: ['solidity-coverage', 'truffle-plugin-verify', 'truffle-contract-size'],
 	api_keys: {
-		bscscan: BSCSCAN_API_KEY
+		bscscan: BSCSCAN_API_KEY,
+		polygonscan: POLYSCAN_API_KEY,
+		etherscan: ETHERSCAN_API_KEY
 	},
 	/**
 	 * Networks define how you connect to your ethereum client and let you set the
