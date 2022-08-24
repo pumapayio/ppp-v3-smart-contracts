@@ -476,11 +476,11 @@ contract Executor is ReentrancyGuard, RegistryHelper, IExecutor, IVersionedContr
 			);
 		}
 
-		// uint256 upKeepId = pullPaymentRegistry.upkeepIds(msg.sender);
+		uint256 upKeepId = pullPaymentRegistry.upkeepIds(msg.sender);
 
-		// require(upKeepId > 0, 'EXECUTOR:INVALID_UPKEEP_ID');
+		require(upKeepId > 0, 'EXECUTOR:INVALID_UPKEEP_ID');
 
-		// ITokenConverter(registry.getTokenConverter()).topupUpkeep(upKeepId);
+		ITokenConverter(registry.getTokenConverter()).topupUpkeep(upKeepId);
 	}
 
 	/**
