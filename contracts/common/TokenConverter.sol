@@ -53,12 +53,14 @@ contract TokenConverter is RegistryHelper {
 			uint256 topUpAmount = (pmaBalance * TOP_UP_MULTIPLIER) / 100;
 
 			if (topUpAmount > 0) {
+				IBEP20(token).approve(address(router), topUpAmount);
+
 				uint256[] memory amounts = router.swapExactTokensForTokens(
 					topUpAmount,
 					1,
 					path,
 					address(this),
-					block.timestamp + 30
+					block.timestamp + 1 days
 				);
 
 				topupPerform = true;
