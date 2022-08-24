@@ -13,7 +13,7 @@
 		"RecurringPullPaymentWithFreeTrial": "0x4CBB60698a57384eB59ef774034012923B29C178",
 		"RecurringPullPaymentWithPaidTrial": "0x22CF038d8633B388804dAaBCDFFcD574fC616346",
 		"RecurringDynamicPullPayment": "0x20D4250e803CA2056ac6dEDddc7bA7A417cF3F68",
-		"TokenConverter": "0xDc562179d76c535Ee7DD91ab9A3B684df62390A3",
+		"TokenConverter": "0x03BFc5904c2e007fd6C66AcD0F0f2a549Ce82A70",
 		"Faucet": "0xBf46dc4FDf2784E944b5ec6ffA98B19e608302E1"
 	}
 }
