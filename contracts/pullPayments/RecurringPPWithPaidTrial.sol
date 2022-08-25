@@ -136,10 +136,7 @@ contract RecurringPullPaymentWithPaidTrial is
 		uint256 indexed billingModelID,
 		uint256 indexed subscriptionID,
 		address payee,
-		address payer,
-		uint256 executionFee,
-		uint256 userAmount,
-		uint256 receiverAmount
+		address payer
 	);
 
 	event PullPaymentExecuted(
@@ -340,9 +337,12 @@ contract RecurringPullPaymentWithPaidTrial is
 			registry.getExecutor()
 		).execute(bm.settlementToken, _paymentToken, msg.sender, bm.payee, bm.initialAmount);
 
-		emit NewSubscription(
-			_billingModelID,
+		emit NewSubscription(_billingModelID, newSubscriptionID, bm.payee, msg.sender);
+
+		emit PullPaymentExecuted(
 			newSubscriptionID,
+			0,
+			_billingModelID,
 			bm.payee,
 			msg.sender,
 			executionFee,
