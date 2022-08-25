@@ -113,7 +113,10 @@ contract SingleDynamicPullPayment is
 		uint256 indexed subscriptionID,
 		uint256 indexed pullPaymentID,
 		address payee,
-		address payer
+		address payer,
+		uint256 executionFee,
+		uint256 userAmount,
+		uint256 receiverAmount
 	);
 
 	event BillingModelEdited(
@@ -234,69 +237,69 @@ contract SingleDynamicPullPayment is
 		uint256 newPullPaymentID = _pullPaymentIDs.current();
 
 		BillingModel storage bm = _billingModels[_billingModelID];
-		Subscription storage suscription = bm.subscriptions[newSubscriptionID];
-		//update the data
-		suscription.subscriber = msg.sender;
-		suscription.name = _name;
-		suscription.settlementToken = _settlementToken;
-		suscription.paymentToken = _paymentToken;
+		{
+			Subscription storage suscription = bm.subscriptions[newSubscriptionID];
+			//update the data
+			suscription.subscriber = msg.sender;
+			suscription.name = _name;
+			suscription.settlementToken = _settlementToken;
+			suscription.paymentToken = _paymentToken;
 
-		bm
-			.subscriptions[newSubscriptionID]
-			.pullPayments[newPullPaymentID]
-			.paymentAmount = _paymentAmount;
-		suscription.pullPayments[newPullPaymentID].executionTimestamp = block.timestamp;
+			bm
+				.subscriptions[newSubscriptionID]
+				.pullPayments[newPullPaymentID]
+				.paymentAmount = _paymentAmount;
+			suscription.pullPayments[newPullPaymentID].executionTimestamp = block.timestamp;
 
-		//update the ids
-		bm.subscriptionIDs.push(newSubscriptionID);
-		suscription.pullPaymentIDs.push(newPullPaymentID);
+			//update the ids
+			bm.subscriptionIDs.push(newSubscriptionID);
+			suscription.pullPaymentIDs.push(newPullPaymentID);
 
-		_subscriptionToBillingModel[newSubscriptionID] = _billingModelID;
-		_subscriptionIdsByAddress[msg.sender].push(newSubscriptionID);
+			_subscriptionToBillingModel[newSubscriptionID] = _billingModelID;
+			_subscriptionIdsByAddress[msg.sender].push(newSubscriptionID);
 
-		// link pull payment with subscription
-		_pullPaymentToSubscription[newPullPaymentID] = newSubscriptionID;
-		// link pull payment with "payer"
-		_pullPaymentIdsByAddress[msg.sender].push(newPullPaymentID);
+			// link pull payment with subscription
+			_pullPaymentToSubscription[newPullPaymentID] = newSubscriptionID;
+			// link pull payment with "payer"
+			_pullPaymentIdsByAddress[msg.sender].push(newPullPaymentID);
 
-		if (bytes(_reference).length > 0) {
-			require(
-				_subscriptionReferences[_reference] == 0,
-				'SingleDynamicPullPayment: REFERENCE_ALREADY_EXISTS'
-			);
-			_subscriptionReferences[_reference] = newSubscriptionID;
-			suscription.uniqueReference = _reference;
-		} else {
-			string memory newReference = string(
-				abi.encodePacked(
-					'SingleDynamicPullPayment_',
-					Strings.toString(_billingModelID),
-					'_',
-					Strings.toString(newSubscriptionID)
-				)
-			);
-			_subscriptionReferences[newReference] = newSubscriptionID;
-			bm.subscriptions[newSubscriptionID].uniqueReference = newReference;
+			if (bytes(_reference).length > 0) {
+				require(
+					_subscriptionReferences[_reference] == 0,
+					'SingleDynamicPullPayment: REFERENCE_ALREADY_EXISTS'
+				);
+				_subscriptionReferences[_reference] = newSubscriptionID;
+				suscription.uniqueReference = _reference;
+			} else {
+				string memory newReference = string(
+					abi.encodePacked(
+						'SingleDynamicPullPayment_',
+						Strings.toString(_billingModelID),
+						'_',
+						Strings.toString(newSubscriptionID)
+					)
+				);
+				_subscriptionReferences[newReference] = newSubscriptionID;
+				bm.subscriptions[newSubscriptionID].uniqueReference = newReference;
+			}
 		}
+		{
+			//execute the payment
+			(uint256 executionFee, uint256 userAmount, uint256 receiverAmount) = IExecutor(
+				registry.getExecutor()
+			).execute(_settlementToken, _paymentToken, msg.sender, bm.payee, _paymentAmount);
 
-		emit NewSubscription(
-			_billingModelID,
-			newSubscriptionID,
-			newPullPaymentID,
-			bm.payee,
-			msg.sender
-		);
-
-		//execute the payment
-		require(
-			IExecutor(registry.getExecutor()).execute(
-				_settlementToken,
-				_paymentToken,
-				msg.sender,
+			emit NewSubscription(
+				_billingModelID,
+				newSubscriptionID,
+				newPullPaymentID,
 				bm.payee,
-				_paymentAmount
-			)
-		);
+				msg.sender,
+				executionFee,
+				userAmount,
+				receiverAmount
+			);
+		}
 		return newSubscriptionID;
 	}
 

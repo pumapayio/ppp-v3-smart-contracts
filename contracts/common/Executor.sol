@@ -115,7 +115,17 @@ contract Executor is ReentrancyGuard, RegistryHelper, IExecutor, IVersionedContr
 		address from,
 		address to,
 		uint256 amount
-	) external virtual override onlyGrantedExecutors(msg.sender) returns (bool) {
+	)
+		external
+		virtual
+		override
+		onlyGrantedExecutors(msg.sender)
+		returns (
+			uint256 executionFee,
+			uint256 userAmount,
+			uint256 receiverAmount
+		)
+	{
 		IBEP20 _paymentToken = IBEP20(paymentToken);
 		require(registry.isSupportedToken(paymentToken), 'Executor: PAYMENT_TOKEN_NOT_SUPPORTED');
 
@@ -129,15 +139,19 @@ contract Executor is ReentrancyGuard, RegistryHelper, IExecutor, IVersionedContr
 		if (paymentToken == settlementToken && paymentToken == address(PMAToken)) {
 			// get tokens from the user
 			require(_paymentToken.transferFrom(from, address(this), amount));
+			userAmount = amount;
+			executionFee = _transferExecutionFee(_paymentToken, amount);
+			receiverAmount = amount - executionFee;
 
-			uint256 executionFee = _transferExecutionFee(_paymentToken, amount);
-
-			require(_paymentToken.transfer(to, amount - executionFee), 'Executor: TRANSFER_FAILED');
-
-			return true;
+			require(_paymentToken.transfer(to, receiverAmount), 'Executor: TRANSFER_FAILED');
 		} else {
-			_execute(settlementToken, IBEP20(paymentToken), from, to, amount);
-			return true;
+			(executionFee, userAmount, receiverAmount) = _execute(
+				settlementToken,
+				IBEP20(paymentToken),
+				from,
+				to,
+				amount
+			);
 		}
 	}
 
@@ -347,7 +361,14 @@ contract Executor is ReentrancyGuard, RegistryHelper, IExecutor, IVersionedContr
 		address from,
 		address to,
 		uint256 amount
-	) internal {
+	)
+		internal
+		returns (
+			uint256 executionFee,
+			uint256 userAmount,
+			uint256 receiverAmount
+		)
+	{
 		(bool canSwap, bool isTwoPaths, address[] memory path1, address[] memory path2) = canSwapFromV2(
 			address(paymentToken),
 			settlementToken
@@ -355,7 +376,6 @@ contract Executor is ReentrancyGuard, RegistryHelper, IExecutor, IVersionedContr
 
 		require(canSwap, 'Executor: NO_SWAP_PATH_EXISTS');
 
-		uint256 executionFee;
 		uint256[] memory amounts;
 		uint256 finalAmount;
 
@@ -368,16 +388,18 @@ contract Executor is ReentrancyGuard, RegistryHelper, IExecutor, IVersionedContr
 			// 4. Transfer execution fee in PMA
 			// 5. Swap remaining PMA to token1
 
-			uint256[] memory path2Amount = uniswapRouterV2.getAmountsIn(amount, path2);
-			uint256[] memory path1Amount = uniswapRouterV2.getAmountsIn(path2Amount[0], path1);
+			amounts = uniswapRouterV2.getAmountsIn(amount, path2);
+			amounts = uniswapRouterV2.getAmountsIn(amounts[0], path1);
 
-			require(paymentToken.transferFrom(from, address(this), path1Amount[0]));
+			userAmount = amounts[0];
+
+			require(paymentToken.transferFrom(from, address(this), userAmount));
 
 			// Then we need to approve the payment token to be used by the Router
-			paymentToken.approve(address(uniswapRouterV2), path1Amount[0]);
+			paymentToken.approve(address(uniswapRouterV2), userAmount);
 
 			amounts = uniswapRouterV2.swapExactTokensForTokens(
-				path1Amount[0], // amount in
+				userAmount, // amount in
 				1, // minimum out
 				path1, // swap path i.e non-PMA -> PMA|| mpm-PMA -> WBNB -> PMA
 				address(this), // token receiver
@@ -392,13 +414,15 @@ contract Executor is ReentrancyGuard, RegistryHelper, IExecutor, IVersionedContr
 			// Then we need to approve the PMA token to be used by the Router
 			PMAToken.approve(address(uniswapRouterV2), finalAmount);
 
-			uniswapRouterV2.swapExactTokensForTokens(
+			amounts = uniswapRouterV2.swapExactTokensForTokens(
 				finalAmount, // amount in
 				1, // minimum out
 				path2, // swap path i.e non-PMA -> PMA|| mpm-PMA -> WBNB -> PMA
 				to, // token receiver
 				block.timestamp + deadline
 			);
+
+			receiverAmount = amounts[amounts.length - 1];
 		} else {
 			// CASE 3: PMA -> non-PMA or non-PMA -> PMA
 			// 1. Get required amount of tokens from user
@@ -411,32 +435,35 @@ contract Executor is ReentrancyGuard, RegistryHelper, IExecutor, IVersionedContr
 			//		 ii. Transfer execution fee in PMA
 			//		iii. Transfer remaining PMA tokens to merchant
 
-			uint256[] memory amountInMax = uniswapRouterV2.getAmountsIn(amount, path1);
+			amounts = uniswapRouterV2.getAmountsIn(amount, path1);
+			userAmount = amounts[0];
 
-			require(paymentToken.transferFrom(from, address(this), amountInMax[0]));
+			require(paymentToken.transferFrom(from, address(this), userAmount));
 
 			// transfer execution fee
 			if (address(paymentToken) == address(PMAToken)) {
 				// get execution fees in PMA
-				executionFee = _transferExecutionFee(paymentToken, amountInMax[0]);
-				finalAmount = amountInMax[0] - executionFee;
+				executionFee = _transferExecutionFee(paymentToken, userAmount);
+				finalAmount = userAmount - executionFee;
 
 				// Then we need to approve the payment token to be used by the Router
 				paymentToken.approve(address(uniswapRouterV2), finalAmount);
 
-				uniswapRouterV2.swapExactTokensForTokens(
+				amounts = uniswapRouterV2.swapExactTokensForTokens(
 					finalAmount, // amount in
 					1, // minimum out
 					path1, // swap path i.e PMA->non-PMA || PMA -> WBNB -> non-PMA
 					to, // token receiver
 					block.timestamp + deadline
 				);
+
+				receiverAmount = amounts[amounts.length - 1];
 			} else if (settlementToken == address(PMAToken)) {
 				// Then we need to approve the payment token to be used by the Router
-				paymentToken.approve(address(uniswapRouterV2), amountInMax[0]);
+				paymentToken.approve(address(uniswapRouterV2), userAmount);
 
 				amounts = uniswapRouterV2.swapExactTokensForTokens(
-					amountInMax[0], // amount in
+					userAmount, // amount in
 					1, // minimum out
 					path1, // swap path i.e non-PMA -> PMA || non-PMA -> WBNB -> PMA
 					address(this), // token receiver
@@ -445,11 +472,9 @@ contract Executor is ReentrancyGuard, RegistryHelper, IExecutor, IVersionedContr
 
 				// get execution fees in PMA
 				executionFee = _transferExecutionFee(IBEP20(settlementToken), amounts[amounts.length - 1]);
+				receiverAmount = amounts[amounts.length - 1] - executionFee;
 
-				require(
-					PMAToken.transfer(to, amounts[amounts.length - 1] - executionFee),
-					'Executor: TRANSFER_FAILED'
-				);
+				require(PMAToken.transfer(to, receiverAmount), 'Executor: TRANSFER_FAILED');
 			}
 		}
 	}

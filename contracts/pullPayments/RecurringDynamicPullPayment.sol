@@ -145,12 +145,16 @@ contract RecurringDynamicPullPayment is
 		address payee,
 		address payer
 	);
+
 	event PullPaymentExecuted(
 		uint256 indexed subscriptionID,
 		uint256 indexed pullPaymentID,
 		uint256 indexed billingModelID,
 		address payee,
-		address payer
+		address payer,
+		uint256 executionFee,
+		uint256 userAmount,
+		uint256 receiverAmount
 	);
 
 	event SubscriptionCancelled(
@@ -316,7 +320,14 @@ contract RecurringDynamicPullPayment is
 
 		_subscribe(_billingModelID, newSubscriptionID, _trialPeriod, _initialAmount, _reference);
 
-		_executeFirstPayment(bm, newSubscriptionID, _settlementToken, _paymentToken, _initialAmount);
+		_executeFirstPayment(
+			_billingModelID,
+			bm,
+			newSubscriptionID,
+			_settlementToken,
+			_paymentToken,
+			_initialAmount
+		);
 
 		emit NewSubscription(_billingModelID, newSubscriptionID, bm.payee, msg.sender);
 
@@ -389,6 +400,7 @@ contract RecurringDynamicPullPayment is
 	}
 
 	function _executeFirstPayment(
+		uint256 _billingModelID,
 		BillingModel storage bm,
 		uint256 newSubscriptionID,
 		address _settlementToken,
@@ -399,14 +411,19 @@ contract RecurringDynamicPullPayment is
 			_executePullPayment(newSubscriptionID);
 		} else if (bm.recurringPPType == 3) {
 			//execute the payment for paid trial
-			require(
-				IExecutor(registry.getExecutor()).execute(
-					_settlementToken,
-					_paymentToken,
-					msg.sender,
-					bm.payee,
-					_initialAmount
-				)
+			(uint256 executionFee, uint256 userAmount, uint256 receiverAmount) = IExecutor(
+				registry.getExecutor()
+			).execute(_settlementToken, _paymentToken, msg.sender, bm.payee, _initialAmount);
+
+			emit PullPaymentExecuted(
+				newSubscriptionID,
+				0,
+				_billingModelID,
+				bm.payee,
+				msg.sender,
+				executionFee,
+				userAmount,
+				receiverAmount
 			);
 		}
 	}
@@ -505,22 +522,25 @@ contract RecurringDynamicPullPayment is
 		// link pull payment with "payer"
 		_pullPaymentIdsByAddress[_subscription.subscriber].push(newPullPaymentID);
 
-		require(
-			IExecutor(registry.getExecutor()).execute(
+		(uint256 executionFee, uint256 userAmount, uint256 receiverAmount) = IExecutor(
+			registry.getExecutor()
+		).execute(
 				_subscription.settlementToken,
 				_subscription.paymentToken,
 				_subscription.subscriber,
 				bm.payee,
 				_subscription.paymentAmount
-			)
-		);
+			);
 
 		emit PullPaymentExecuted(
 			_subscriptionID,
 			newPullPaymentID,
 			billingModelID,
 			bm.payee,
-			_subscription.subscriber
+			_subscription.subscriber,
+			executionFee,
+			userAmount,
+			receiverAmount
 		);
 
 		return newPullPaymentID;

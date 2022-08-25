@@ -8,7 +8,13 @@ interface IExecutor {
 		address,
 		address,
 		uint256
-	) external returns (bool);
+	)
+		external
+		returns (
+			uint256 executionFee,
+			uint256 userAmount,
+			uint256 receiverAmount
+		);
 
 	function execute(string calldata _bmType, uint256 _subscriptionId) external returns (uint256);
 	//    function executePullPayment(uint256) external;

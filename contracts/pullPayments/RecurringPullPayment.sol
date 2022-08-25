@@ -148,7 +148,10 @@ contract RecurringPullPayment is
 		uint256 indexed pullPaymentID,
 		uint256 indexed billingModelID,
 		address payee,
-		address payer
+		address payer,
+		uint256 executionFee,
+		uint256 userAmount,
+		uint256 receiverAmount
 	);
 	event SubscriptionCancelled(
 		uint256 indexed billingModelID,
@@ -384,22 +387,25 @@ contract RecurringPullPayment is
 		// link pull payment with "payer"
 		_pullPaymentIdsByAddress[subscription.subscriber].push(newPullPaymentID);
 
-		require(
-			IExecutor(registry.getExecutor()).execute(
+		(uint256 executionFee, uint256 userAmount, uint256 receiverAmount) = IExecutor(
+			registry.getExecutor()
+		).execute(
 				bm.settlementToken,
 				subscription.paymentToken,
 				subscription.subscriber,
 				bm.payee,
 				bm.amount
-			)
-		);
+			);
 
 		emit PullPaymentExecuted(
 			_subscriptionID,
 			newPullPaymentID,
 			billingModelID,
 			bm.payee,
-			subscription.subscriber
+			subscription.subscriber,
+			executionFee,
+			userAmount,
+			receiverAmount
 		);
 
 		return newPullPaymentID;
