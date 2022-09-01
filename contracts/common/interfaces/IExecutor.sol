@@ -17,5 +17,19 @@ interface IExecutor {
 		);
 
 	function execute(string calldata _bmType, uint256 _subscriptionId) external returns (uint256);
+
 	//    function executePullPayment(uint256) external;
+
+	function getReceivingAmount(
+		address _paymentToken,
+		address _settlementToken,
+		uint256 _amount
+	)
+		external
+		view
+		returns (
+			uint256 receivingAmount,
+			uint256 userPayableAmount,
+			uint256 executionFee
+		);
 }

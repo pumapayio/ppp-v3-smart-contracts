@@ -9,7 +9,6 @@ import '../common/KeeperCompatible.sol';
 import './interfaces/IRecurringDynamicPP.sol';
 import '../common/interfaces/IPullPaymentRegistry.sol';
 import '../common/interfaces/IVersionedContract.sol';
-import '../common/interfaces/IExecutor.sol';
 
 /**
  * @title RecurringDynamicPullPayment
@@ -623,6 +622,24 @@ contract RecurringDynamicPullPayment is
 		return _billingModelID;
 	}
 
+	function _cancelSubscription(
+		uint256 _subscriptionID,
+		SubscriptionData storage subscription,
+		BillingModel storage bm
+	) internal {
+		subscription.cancelTimestamp = block.timestamp;
+		subscription.cancelledBy = msg.sender;
+
+		_inactiveSubscriptionsByAddress[msg.sender].push(_subscriptionID);
+
+		emit SubscriptionCancelled(
+			_subscriptionToBillingModel[_subscriptionID],
+			_subscriptionID,
+			bm.payee,
+			subscription.subscriber
+		);
+	}
+
 	/*
    	=======================================================================
    	======================== Getter Methods ===============================
@@ -666,7 +683,24 @@ contract RecurringDynamicPullPayment is
 		);
 
 		for (uint256 subIndex = 0; subIndex < subcriptionCount; subIndex++) {
-			_executePullPayment(subsctionIds[subIndex]);
+			BillingModel storage bm = _billingModels[_subscriptionToBillingModel[subsctionIds[subIndex]]];
+			SubscriptionData storage subscription = subscriptions[subsctionIds[subIndex]].data;
+
+			if (
+				RegistryHelper.hasEnoughBalance(
+					subscription.subscriber,
+					subscription.paymentToken,
+					subscription.settlementToken,
+					subscription.paymentAmount
+				)
+			) {
+				_executePullPayment(subsctionIds[subIndex]);
+			} else {
+				// cancel pullpayment if extented time is finished
+				if (block.timestamp > (subscription.nextPaymentTimestamp + registry.extensionPeriod())) {
+					_cancelSubscription(subsctionIds[subIndex], subscription, bm);
+				}
+			}
 		}
 	}
 

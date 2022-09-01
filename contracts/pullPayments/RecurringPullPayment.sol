@@ -10,7 +10,6 @@ import '../common/KeeperCompatible.sol';
 import './interfaces/IPullPayment.sol';
 import '../common/interfaces/IPullPaymentRegistry.sol';
 import '../common/interfaces/IVersionedContract.sol';
-import '../common/interfaces/IExecutor.sol';
 import '../common/interfaces/IUniswapV2Router02.sol';
 import '../common/interfaces/IKeeperRegistry.sol';
 
@@ -434,16 +433,7 @@ contract RecurringPullPayment is
 			'RecurringPullPayment: INVALID_CANCELER'
 		);
 
-		subscription.cancelTimestamp = block.timestamp;
-		subscription.cancelledBy = msg.sender;
-		_inactiveSubscriptionsByAddress[msg.sender].push(_subscriptionID);
-
-		emit SubscriptionCancelled(
-			_subscriptionToBillingModel[_subscriptionID],
-			_subscriptionID,
-			bm.payee,
-			bm.subscriptions[_subscriptionID].subscriber
-		);
+		_cancelSubscription(_subscriptionID, subscription, bm);
 
 		return _subscriptionID;
 	}
@@ -501,6 +491,23 @@ contract RecurringPullPayment is
 		return _billingModelID;
 	}
 
+	function _cancelSubscription(
+		uint256 _subscriptionID,
+		Subscription storage subscription,
+		BillingModel storage bm
+	) internal {
+		subscription.cancelTimestamp = block.timestamp;
+		subscription.cancelledBy = msg.sender;
+		_inactiveSubscriptionsByAddress[msg.sender].push(_subscriptionID);
+
+		emit SubscriptionCancelled(
+			_subscriptionToBillingModel[_subscriptionID],
+			_subscriptionID,
+			bm.payee,
+			bm.subscriptions[_subscriptionID].subscriber
+		);
+	}
+
 	/*
    	=======================================================================
    	======================== Getter Methods ===============================
@@ -544,7 +551,24 @@ contract RecurringPullPayment is
 		);
 
 		for (uint256 subIndex = 0; subIndex < subcriptionCount; subIndex++) {
-			_executePullPayment(subsctionIds[subIndex]);
+			BillingModel storage bm = _billingModels[_subscriptionToBillingModel[subsctionIds[subIndex]]];
+			Subscription storage subscription = bm.subscriptions[subsctionIds[subIndex]];
+
+			if (
+				RegistryHelper.hasEnoughBalance(
+					subscription.subscriber,
+					subscription.paymentToken,
+					bm.settlementToken,
+					bm.amount
+				)
+			) {
+				_executePullPayment(subsctionIds[subIndex]);
+			} else {
+				// cancel pullpayment if extented time is finished
+				if (block.timestamp > (subscription.nextPaymentTimestamp + registry.extensionPeriod())) {
+					_cancelSubscription(subsctionIds[subIndex], subscription, bm);
+				}
+			}
 		}
 	}
 
