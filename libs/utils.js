@@ -99,6 +99,9 @@ const deploySmartContracts = async (owner, merchant, customer, user, fundRceiver
 
 	await registry.setAddressFor('PullPaymentsRegistry', ppRegistry.address);
 
+	// update extension period
+	await registry.updateExtensionPeriod('120');
+
 	// Executor
 	const executor = await Executor.new(registry.address);
 

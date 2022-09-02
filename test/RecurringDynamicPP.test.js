@@ -1071,7 +1071,7 @@ contract('Recurring Dynamic PullPayment', (accounts) => {
 				const customerBalAfter = await pmaToken.balanceOf(customer);
 				const merchantBalAfter = await pmaToken.balanceOf(merchant);
 
-				expectEvent.notEmitted(this.subscribeToBillingModelTx, 'PullPaymentExecuted');
+				await expectEvent(this.subscribeToBillingModelTx, 'PullPaymentExecuted');
 
 				expect(customerBalAfter).to.bignumber.be.lt(this.customerBalBefore);
 				expect(merchantBalAfter).to.bignumber.be.eq(this.merchantBalBefore.add(new BN('5')));
