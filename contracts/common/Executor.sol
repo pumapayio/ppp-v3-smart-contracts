@@ -496,7 +496,7 @@ contract Executor is ReentrancyGuard, RegistryHelper, IExecutor, IVersionedContr
 		// transfer execution Fee in PMA to executionFee receiver
 		if (executionFee > 0) {
 			require(
-				_paymentToken.transfer(registry.executionFeeReceiver(), executionFee),
+				_paymentToken.transfer(registry.getTokenConverter(), executionFee),
 				'Executor: TRANSFER_FAILED'
 			);
 		}
