@@ -24,6 +24,8 @@ contract PullPaymentsRegistry is OwnableUpgradeable, IPullPaymentRegistry {
 	/// @notice upkeep contract address => upkeepId
 	mapping(address => uint256) public upkeepIds;
 
+	mapping(address => mapping(uint256 => bool)) public isLowBalanceSubscription;
+
 	/*
    	=======================================================================
    	======================== Constructor/Initializer ======================
@@ -68,6 +70,30 @@ contract PullPaymentsRegistry is OwnableUpgradeable, IPullPaymentRegistry {
    	======================== Public Methods ===============================
    	=======================================================================
  	*/
+
+	/**
+	 * @notice This method allows pullpayment contracts to add the low balance subscription ids in order to prevent the pullpayment execution
+	 * @param _subscriptionId - indicates the low balance subscription id
+	 */
+	function addLowBalanceSubscription(uint256 _subscriptionId)
+		public
+		virtual
+		onlyValidExecutorAddress(msg.sender)
+	{
+		isLowBalanceSubscription[msg.sender][_subscriptionId] = true;
+	}
+
+	/**
+	 * @notice This method allows pullpayment contracts to remove the low balance subscription ids in order to allow the pullpayment execution
+	 * @param _subscriptionId - indicates the low balance subscription id
+	 */
+	function removeLowBalanceSubscription(uint256 _subscriptionId)
+		public
+		virtual
+		onlyValidExecutorAddress(msg.sender)
+	{
+		delete isLowBalanceSubscription[msg.sender][_subscriptionId];
+	}
 
 	/**
 	 * @notice This method allows owner to add the upkeeps in the core registry

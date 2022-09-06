@@ -694,6 +694,12 @@ contract RecurringDynamicPullPayment is
 					subscription.paymentAmount
 				)
 			) {
+				IPullPaymentRegistry ppRegistry = IPullPaymentRegistry(registry.getPullPaymentRegistry());
+
+				if (ppRegistry.isLowBalanceSubscription(address(this), subsctionIds[subIndex])) {
+					ppRegistry.removeLowBalanceSubscription(subsctionIds[subIndex]);
+				}
+
 				_executePullPayment(subsctionIds[subIndex]);
 			} else {
 				// cancel pullpayment if extented time is finished
@@ -714,11 +720,19 @@ contract RecurringDynamicPullPayment is
 		view
 		returns (uint256[] memory subscriptionIds, uint256 count)
 	{
-		uint256 batchSize = IPullPaymentRegistry(registry.getPullPaymentRegistry()).BATCH_SIZE();
+		IPullPaymentRegistry ppRegistry = IPullPaymentRegistry(registry.getPullPaymentRegistry());
+
+		uint256 batchSize = ppRegistry.BATCH_SIZE();
 		subscriptionIds = new uint256[](batchSize);
 
 		for (uint256 id = 1; id <= _subscriptionIDs.current(); id++) {
-			if (isPullpayment(id) && count < batchSize) {
+			SubscriptionData storage subscription = subscriptions[id].data;
+
+			bool isValid = (ppRegistry.isLowBalanceSubscription(address(this), id) &&
+				block.timestamp > (subscription.nextPaymentTimestamp + registry.extensionPeriod())) ||
+				!ppRegistry.isLowBalanceSubscription(address(this), id);
+
+			if (isValid && isPullpayment(id) && count < batchSize) {
 				subscriptionIds[count] = id;
 				count++;
 			}

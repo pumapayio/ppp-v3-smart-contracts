@@ -23,4 +23,13 @@ interface IPullPaymentRegistry {
 	function setUpkeepId(address upkeepAddress, uint256 upkeepId) external;
 
 	function upkeepIds(address upkeepAddress) external view returns (uint256);
+
+	function addLowBalanceSubscription(uint256 _subscriptionId) external;
+
+	function removeLowBalanceSubscription(uint256 _subscriptionId) external;
+
+	function isLowBalanceSubscription(address _ppAddress, uint256 _subscriptionId)
+		external
+		view
+		returns (bool);
 }
