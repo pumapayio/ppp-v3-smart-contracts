@@ -2,6 +2,14 @@ const { spawn } = require('child_process');
 
 const verifyContracts = (networkId) => {
 	const addresses = require(`../configurations/${networkId}/Addresses.json`);
+	const networkNames = {
+		56: 'bsc_main',
+		97: 'bsc_test',
+		3: 'ropsten',
+		4: 'rinkeby',
+		137: 'matic',
+		80001: 'mumbai'
+	};
 
 	for (let contract of Object.keys(addresses[networkId])) {
 		console.log('contract: ', contract);
@@ -9,7 +17,7 @@ const verifyContracts = (networkId) => {
 			'run',
 			'verify',
 			'--network',
-			'bsc_test',
+			`${networkNames[Number(networkId)]}`,
 			`${contract}@${addresses[networkId][contract]}`
 		]);
 

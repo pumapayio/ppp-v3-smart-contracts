@@ -112,6 +112,19 @@ module.exports = {
 			timeout: 20000000,
 			networkCheckTimeout: 20000000,
 			timeoutBlocks: 200
+		},
+		matic: {
+			provider: () =>
+				new HDWalletProvider(mnemonic, 'https://matic-mainnet.chainstacklabs.com/'),
+			// https://rpc-mumbai.maticvigil.com/
+			// https://matic-mumbai.chainstacklabs.com
+			// https://rpc-mumbai.matic.today
+			network_id: 137,
+			gasPrice: 10e9,
+			skipDryRun: true,
+			timeout: 20000000,
+			networkCheckTimeout: 20000000,
+			timeoutBlocks: 200
 		}
 		// Useful for deploying to a public network.
 		// NB: It's important to wrap the provider as a function.
