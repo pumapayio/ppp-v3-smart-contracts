@@ -123,7 +123,8 @@ contract SingleDynamicPullPayment is
 		uint256 indexed billingModelID,
 		address indexed newPayee,
 		address indexed oldPayee,
-		string newMerhantName
+		string newMerchantName,
+		string newMerchantUrl
 	);
 	/*
    	=======================================================================
@@ -334,7 +335,13 @@ contract SingleDynamicPullPayment is
 		bm.merchantName = _newMerchantName;
 		bm.merchantURL = _newMerchantURL;
 
-		emit BillingModelEdited(_billingModelID, _newPayee, msg.sender, _newMerchantName);
+		emit BillingModelEdited(
+			_billingModelID,
+			_newPayee,
+			msg.sender,
+			_newMerchantName,
+			_newMerchantURL
+		);
 		return _billingModelID;
 	}
 

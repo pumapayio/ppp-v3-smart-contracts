@@ -167,7 +167,8 @@ contract RecurringDynamicPullPayment is
 		uint256 indexed billingModelID,
 		address indexed newPayee,
 		address indexed oldPayee,
-		string newMerchantName
+		string newMerchantName,
+		string newMerchantUrl
 	);
 
 	/*
@@ -618,7 +619,13 @@ contract RecurringDynamicPullPayment is
 		bm.merchantName = _newMerchantName;
 		bm.merchantURL = _newMerchantURL;
 
-		emit BillingModelEdited(_billingModelID, _newPayee, msg.sender, _newMerchantName);
+		emit BillingModelEdited(
+			_billingModelID,
+			_newPayee,
+			msg.sender,
+			_newMerchantName,
+			_newMerchantURL
+		);
 		return _billingModelID;
 	}
 

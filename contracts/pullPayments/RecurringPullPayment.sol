@@ -164,7 +164,8 @@ contract RecurringPullPayment is
 		address indexed newPayee,
 		string indexed newName,
 		string newMerchantName,
-		address oldPayee
+		address oldPayee,
+		string newMerchantUrl
 	);
 
 	/*
@@ -487,7 +488,14 @@ contract RecurringPullPayment is
 		bm.merchantName = _newMerchantName;
 		bm.merchantURL = _newMerchantURL;
 
-		emit BillingModelEdited(_billingModelID, _newPayee, _newName, _newMerchantName, msg.sender);
+		emit BillingModelEdited(
+			_billingModelID,
+			_newPayee,
+			_newName,
+			_newMerchantName,
+			msg.sender,
+			_newMerchantURL
+		);
 		return _billingModelID;
 	}
 

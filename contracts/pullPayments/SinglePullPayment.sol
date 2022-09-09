@@ -130,10 +130,11 @@ contract SinglePullPayment is
 		uint256 indexed billingModelID,
 		address indexed newPayee,
 		string indexed newName,
-		string newMerhantName,
+		string newMerchantName,
 		uint256 amount,
 		address settlementToken,
-		address oldPayee
+		address oldPayee,
+		string newMerchantUrl
 	);
 
 	/*
@@ -355,7 +356,8 @@ contract SinglePullPayment is
 			_newMerchantName,
 			_newAmount,
 			_newSettlementToken,
-			msg.sender
+			msg.sender,
+			_newMerchantURL
 		);
 		return _billingModelID;
 	}
