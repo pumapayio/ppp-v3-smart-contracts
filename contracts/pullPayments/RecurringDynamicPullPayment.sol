@@ -681,6 +681,7 @@ contract RecurringDynamicPullPayment is
 			performData,
 			(uint256[], uint256)
 		);
+		IPullPaymentRegistry ppRegistry = IPullPaymentRegistry(registry.getPullPaymentRegistry());
 
 		for (uint256 subIndex = 0; subIndex < subcriptionCount; subIndex++) {
 			BillingModel storage bm = _billingModels[_subscriptionToBillingModel[subsctionIds[subIndex]]];
@@ -694,14 +695,15 @@ contract RecurringDynamicPullPayment is
 					subscription.paymentAmount
 				)
 			) {
-				IPullPaymentRegistry ppRegistry = IPullPaymentRegistry(registry.getPullPaymentRegistry());
-
 				if (ppRegistry.isLowBalanceSubscription(address(this), subsctionIds[subIndex])) {
 					ppRegistry.removeLowBalanceSubscription(subsctionIds[subIndex]);
 				}
 
 				_executePullPayment(subsctionIds[subIndex]);
 			} else {
+				if (!ppRegistry.isLowBalanceSubscription(address(this), subsctionIds[subIndex])) {
+					ppRegistry.addLowBalanceSubscription(subsctionIds[subIndex]);
+				}
 				// cancel pullpayment if extented time is finished
 				if (block.timestamp > (subscription.nextPaymentTimestamp + registry.extensionPeriod())) {
 					_cancelSubscription(subsctionIds[subIndex], subscription, bm);
