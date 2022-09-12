@@ -7,12 +7,12 @@
 		"WBNB": "0x0b99f70C1489ACA8F75AD33147C709d944037023",
 		"PullPaymentsRegistry": "0xe8D228cE0569feeaB47b9bC0e7e9e219104fF26c",
 		"Executor": "0x7Bf121c08661389777b29937f45a56Ada7d50488",
-		"SinglePullPayment": "0xCc012AC7f8a4d1A7c9C34Efc157adEBC6AbC1eD4",
-		"SingleDynamicPullPayment": "0xC543081d87234d8F1cBc90E883a6e4EE11C1a2ee",
-		"RecurringPullPayment": "0xb5D88f165D3431B931273ee1A59d0480fC96AC3B",
-		"RecurringPullPaymentWithFreeTrial": "0x648C47ed62cCB3986624eAEac6436a84d780Caf7",
-		"RecurringPullPaymentWithPaidTrial": "0xce80cf44666ed84339F900A130184cA18b8e49Ce",
-		"RecurringDynamicPullPayment": "0xE9e13e2250BDB50e96d4787A7EDe78441e1382a7",
+		"SinglePullPayment": "0x797E1631891fCd4Ef5f665f65FE4Eb0E67B7f51E",
+		"SingleDynamicPullPayment": "0x9d65Db938064Ca45238Bd944ac10FB34F07B1159",
+		"RecurringPullPayment": "0xEbb2135224Bfd7a5395c95B0e5A6a0493bF6e4Ba",
+		"RecurringPullPaymentWithFreeTrial": "0xc3A9ccb1eE4A8998e89f5a35681e5226e3c61971",
+		"RecurringPullPaymentWithPaidTrial": "0xCd003B71c98B865Ee8f5806e225d885a29435834",
+		"RecurringDynamicPullPayment": "0xdb27314a1ED596a669da759b2dc75308897Da767",
 		"TokenConverter": "0x03BFc5904c2e007fd6C66AcD0F0f2a549Ce82A70",
 		"Faucet": "0xBf46dc4FDf2784E944b5ec6ffA98B19e608302E1"
 	}
