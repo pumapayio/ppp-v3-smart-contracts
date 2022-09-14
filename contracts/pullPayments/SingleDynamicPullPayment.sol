@@ -34,6 +34,8 @@ contract SingleDynamicPullPayment is
 	struct PullPayment {
 		uint256 paymentAmount;
 		uint256 executionTimestamp;
+		uint256 billingModelID;
+		uint256 subscriptionID;
 	}
 
 	struct Subscription {
@@ -457,6 +459,8 @@ contract SingleDynamicPullPayment is
 			pullPayment.paymentAmount = 0;
 			pullPayment.executionTimestamp = 0;
 		}
+		pullPayment.billingModelID = bmID;
+		pullPayment.subscriptionID = _pullPaymentToSubscription[_pullPaymentID];
 	}
 
 	/**
