@@ -8,7 +8,7 @@
 		"PullPaymentsRegistry": "0xe8D228cE0569feeaB47b9bC0e7e9e219104fF26c",
 		"Executor": "0x7Bf121c08661389777b29937f45a56Ada7d50488",
 		"SinglePullPayment": "0x797E1631891fCd4Ef5f665f65FE4Eb0E67B7f51E",
-		"SingleDynamicPullPayment": "0x9d65Db938064Ca45238Bd944ac10FB34F07B1159",
+		"SingleDynamicPullPayment": "0xfa90269DE852B81e3d9A364983eE3bDF8374AC49",
 		"RecurringPullPayment": "0xEbb2135224Bfd7a5395c95B0e5A6a0493bF6e4Ba",
 		"RecurringPullPaymentWithFreeTrial": "0xc3A9ccb1eE4A8998e89f5a35681e5226e3c61971",
 		"RecurringPullPaymentWithPaidTrial": "0xCd003B71c98B865Ee8f5806e225d885a29435834",

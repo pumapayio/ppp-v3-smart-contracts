@@ -18,7 +18,7 @@ const supportedTokens = {
 	],
 	1111: [],
 	80001: [
-		'0x00584Bb80c7473f0c5F68C1bF4A5b447660aa9E2', // USDT 
+		'0x00584Bb80c7473f0c5F68C1bF4A5b447660aa9E2', // USDT
 		'0x5DdFDb797104d7a04EA7dD3f35E190499A968178',	// ADA
 		'0x2D40d4aD83b9CCfc77Bc29772C4a3066e44677D2', // ETH
 		'0xB160d10f6E909d4A3c5FCB52665d5A474d3E8325', // PMA
@@ -175,6 +175,20 @@ const keeperRegistry = {
 	137: '0x02777053d6764996e594c3E88AF1D58D5363a2e6',
 	80001: '0x02777053d6764996e594c3E88AF1D58D5363a2e6' // USDT as BUSD
 };
+
+const MPC_ADDRESS = {
+	1: '',
+	3: '',
+	4: '',
+	42: '',
+	56: '',
+	97: '',
+	137: '',
+	1111: '0x02777053d6764996e594c3E88AF1D58D5363a2e6',
+	80001: ''
+};
+
+
 const ExecutionFeeReceiver = '0xb2A80b679F87530EdFB848708CA948cbF25Ca3e0'; // TODO - must be Token converter contract
 const ExecutionFee = 1000; // 10%
 
