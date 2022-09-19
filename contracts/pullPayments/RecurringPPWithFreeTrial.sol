@@ -681,27 +681,19 @@ contract RecurringPullPaymentWithFreeTrial is
 	{
 		BillingModel storage bmDetails = _billingModels[_billingModelID];
 
-		address[] memory path = new address[](2);
-		path[0] = _token;
-		path[1] = bmDetails.settlementToken;
+		(, uint256 userPayableAmount, ) = IExecutor(registry.getExecutor()).getReceivingAmount(
+			_token,
+			bmDetails.settlementToken,
+			bmDetails.amount
+		);
 
-		uint256 amount;
-		if (_token != bmDetails.settlementToken) {
-			uint256[] memory amountsIn = IUniswapV2Router02(registry.getUniswapRouter()).getAmountsIn(
-				bmDetails.amount,
-				path
-			);
-			amount = amountsIn[0];
-		} else {
-			amount = bmDetails.amount;
-		}
 		bm.name = bmDetails.name;
 		bm.payee = bmDetails.payee;
 		bm.merchantName = bmDetails.merchantName;
 		bm.uniqueReference = bmDetails.uniqueReference;
 		bm.settlementAmount = bmDetails.amount;
 		bm.settlementToken = bmDetails.settlementToken;
-		bm.paymentAmount = amount;
+		bm.paymentAmount = userPayableAmount;
 		bm.paymentToken = _token;
 		bm.frequency = bmDetails.frequency;
 		bm.trialPeriod = bmDetails.trialPeriod;
