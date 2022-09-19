@@ -1,4 +1,4 @@
-const { getDeployedContract } = require('../libs/utils');
+const { getPPRegistry } = require('../libs/utils');
 
 module.exports = async (deployer) => {
 	try {
@@ -6,7 +6,7 @@ module.exports = async (deployer) => {
 		const addresses = require(`../configurations/${networkId}/Addresses.json`);
 
 		// Register recurring pullpayment contract on pullPayment registry
-		const pullPaymentRegistry = await getDeployedContract('PullPaymentsRegistry', artifacts);
+		const pullPaymentRegistry = await getPPRegistry(networkId, artifacts);
 		await pullPaymentRegistry.addPullPaymentContract(
 			'RecurringPullPayment',
 			addresses[networkId]['RecurringPullPayment']

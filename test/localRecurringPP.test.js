@@ -4,9 +4,9 @@ const { deploySmartContracts } = require('../libs/utils');
 const { expect } = require('chai');
 const { timeTravel } = require('./helpers/timeHelper');
 const { MaxUint256 } = require('@ethersproject/constants');
-const { expectEvent, expectRevert } = require('@openzeppelin/test-helpers');
+const { expectEvent, expectRevert, ether } = require('@openzeppelin/test-helpers');
 const { BN } = require('@openzeppelin/test-helpers');
-const { ZERO_ADDRESS } = require('@openzeppelin/test-helpers/src/constants');
+const { ZERO_ADDRESS, MAX_UINT256 } = require('@openzeppelin/test-helpers/src/constants');
 const { getGasCost } = require('./helpers/gasCost');
 const BlockData = artifacts.require('BlockData');
 
@@ -590,6 +590,82 @@ contract('RecurringPullPayment', (accounts) => {
 		});
 	});
 
+	describe('checkUpkeep()', async () => {
+		before('', async () => {
+			billingModel.frequency = 60; // 1 minute
+
+			this.createBillingModelTx = await this.contract.createBillingModel(
+				billingModel.payee,
+				billingModel.name,
+				billingModel.merchantName,
+				billingModel.reference + '34',
+				billingModel.merchantURL,
+				billingModel.amount,
+				billingModel.token,
+				billingModel.frequency,
+				billingModel.numberOfPayments,
+				{ from: merchant }
+			);
+
+			await pmaToken.mint(user1, ether('30'), { from: owner });
+		});
+
+		it('should cancel the upkeep after extension period', async () => {
+			await pmaToken.approve(executor.address, MAX_UINT256, { from: user1 });
+
+			currentBillingModelId = await this.contract.getCurrentBillingModelId();
+
+			await this.contract.subscribeToBillingModel(
+				currentBillingModelId,
+				billingModel.token,
+				'subscriptionRef6',
+				{
+					from: user1
+				}
+			);
+
+			await timeTravel(billingModel.frequency);
+
+			let upkeepData = await this.contract.checkUpkeep('0x');
+
+			console.log('upkeepData: ', upkeepData);
+
+			await this.contract.performUpkeep(upkeepData.performData);
+
+			const currentSubscriptionId = await this.contract.getCurrentSubscriptionId();
+			let subscriptionInfo = await this.contract.getSubscription(currentSubscriptionId);
+
+			expect(subscriptionInfo.numberOfPayments).to.bignumber.be.eq(new BN('3'));
+
+			await timeTravel(billingModel.frequency);
+
+			upkeepData = await this.contract.checkUpkeep('0x');
+			await this.contract.performUpkeep(upkeepData.performData);
+			subscriptionInfo = await this.contract.getSubscription(currentSubscriptionId);
+			expect(subscriptionInfo.numberOfPayments).to.bignumber.be.eq(new BN('2'));
+
+			await timeTravel(billingModel.frequency);
+
+			const bal = await pmaToken.balanceOf(user1);
+			await pmaToken.transfer(owner, bal, { from: user1 });
+
+			upkeepData = await this.contract.checkUpkeep('0x');
+			await this.contract.performUpkeep(upkeepData.performData);
+			subscriptionInfo = await this.contract.getSubscription(currentSubscriptionId);
+			expect(subscriptionInfo.numberOfPayments).to.bignumber.be.eq(new BN('2'));
+			expect(subscriptionInfo.cancelTimestamp).to.bignumber.be.eq(new BN('0'));
+
+			await timeTravel(120);
+
+			upkeepData = await this.contract.checkUpkeep('0x');
+			await this.contract.performUpkeep(upkeepData.performData);
+			subscriptionInfo = await this.contract.getSubscription(currentSubscriptionId);
+			expect(subscriptionInfo.numberOfPayments).to.bignumber.be.eq(new BN('2'));
+			expect(subscriptionInfo.cancelTimestamp).to.bignumber.be.gt(new BN('0'));
+			expect(subscriptionInfo.cancelledBy).to.be.eq(owner);
+		});
+	});
+
 	describe('Getters', async () => {
 		describe('getBillingModel()', () => {
 			let currentBillingModelId;
@@ -624,7 +700,7 @@ contract('RecurringPullPayment', (accounts) => {
 				expect(bmModel.merchantURL).to.be.eq(billingModel.merchantURL);
 				expect(bmModel.amount).to.bignumber.be.eq(bmModel.amount);
 				expect(bmModel.settlementToken).to.be.eq(billingModel.token);
-				expect(bmModel.frequency).to.bignumber.be.eq(new BN('600'));
+				expect(bmModel.frequency).to.bignumber.be.eq(new BN('60'));
 				expect(bmModel.numberOfPayments).to.bignumber.be.eq(new BN('5'));
 				expect(bmModel.creationTime).to.bignumber.be.gt(new BN('0'));
 			});
@@ -693,7 +769,7 @@ contract('RecurringPullPayment', (accounts) => {
 					'RecurringPullPayment: INVALID_SUBSCRIPTION_ID'
 				);
 				await expectRevert(
-					this.contract.getSubscription(5),
+					this.contract.getSubscription(15),
 					'RecurringPullPayment: INVALID_SUBSCRIPTION_ID'
 				);
 			});

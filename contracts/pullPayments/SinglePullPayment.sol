@@ -121,16 +121,20 @@ contract SinglePullPayment is
 		uint256 indexed subscriptionID,
 		uint256 indexed pullPaymentID,
 		address payee,
-		address payer
+		address payer,
+		uint256 executionFee,
+		uint256 userAmount,
+		uint256 receiverAmount
 	);
 	event BillingModelEdited(
 		uint256 indexed billingModelID,
 		address indexed newPayee,
 		string indexed newName,
-		string newMerhantName,
+		string newMerchantName,
 		uint256 amount,
 		address settlementToken,
-		address oldPayee
+		address oldPayee,
+		string newMerchantUrl
 	);
 
 	/*
@@ -284,23 +288,20 @@ contract SinglePullPayment is
 			subscription.uniqueReference = newReference;
 		}
 
+		//execute the payment
+		(uint256 executionFee, uint256 userAmount, uint256 receiverAmount) = IExecutor(
+			registry.getExecutor()
+		).execute(bm.settlementToken, _paymentToken, msg.sender, bm.payee, bm.amount);
+
 		emit NewSubscription(
 			_billingModelID,
 			newSubscriptionID,
 			newPullPaymentID,
 			bm.payee,
-			msg.sender
-		);
-
-		//execute the payment
-		require(
-			IExecutor(registry.getExecutor()).execute(
-				bm.settlementToken,
-				_paymentToken,
-				msg.sender,
-				bm.payee,
-				bm.amount
-			)
+			msg.sender,
+			executionFee,
+			userAmount,
+			receiverAmount
 		);
 		return newSubscriptionID;
 	}
@@ -355,7 +356,8 @@ contract SinglePullPayment is
 			_newMerchantName,
 			_newAmount,
 			_newSettlementToken,
-			msg.sender
+			msg.sender,
+			_newMerchantURL
 		);
 		return _billingModelID;
 	}

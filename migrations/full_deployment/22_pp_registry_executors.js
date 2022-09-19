@@ -1,14 +1,14 @@
-const { getDeployedContract } = require('../../libs/utils');
+const { getPPRegistry } = require('../../libs/utils');
 const { executors } = require('../../configurations/config');
 
 module.exports = async (deployer) => {
 	try {
 		const networkId = deployer.network_id.toString();
 
-		const ppRegistry = await getDeployedContract('PullPaymentsRegistry', artifacts);
+		const pullPaymentRegistry = await getPPRegistry(networkId, artifacts);
 
 		for (let executor of executors[networkId]) {
-			await ppRegistry.grantExecutor(executor);
+			await pullPaymentRegistry.grantExecutor(executor);
 			console.log(`Added executor address: ${executor}`);
 		}
 	} catch (error) {

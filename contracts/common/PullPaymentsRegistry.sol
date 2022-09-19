@@ -16,8 +16,15 @@ contract PullPaymentsRegistry is OwnableUpgradeable, IPullPaymentRegistry {
    	======================== Public Variables ============================
    	=======================================================================
  	*/
+	uint256 public BATCH_SIZE;
+
 	mapping(bytes32 => address) public registry;
 	mapping(address => bool) private executors;
+
+	/// @notice upkeep contract address => upkeepId
+	mapping(address => uint256) public upkeepIds;
+
+	mapping(address => mapping(uint256 => bool)) public isLowBalanceSubscription;
 
 	/*
    	=======================================================================
@@ -30,6 +37,8 @@ contract PullPaymentsRegistry is OwnableUpgradeable, IPullPaymentRegistry {
 	 */
 	function initialize() external virtual initializer {
 		__Ownable_init();
+
+		BATCH_SIZE = 20;
 	}
 
 	/*
@@ -61,6 +70,41 @@ contract PullPaymentsRegistry is OwnableUpgradeable, IPullPaymentRegistry {
    	======================== Public Methods ===============================
    	=======================================================================
  	*/
+
+	/**
+	 * @notice This method allows pullpayment contracts to add the low balance subscription ids in order to prevent the pullpayment execution
+	 * @param _subscriptionId - indicates the low balance subscription id
+	 */
+	function addLowBalanceSubscription(uint256 _subscriptionId)
+		public
+		virtual
+		onlyValidExecutorAddress(msg.sender)
+	{
+		isLowBalanceSubscription[msg.sender][_subscriptionId] = true;
+	}
+
+	/**
+	 * @notice This method allows pullpayment contracts to remove the low balance subscription ids in order to allow the pullpayment execution
+	 * @param _subscriptionId - indicates the low balance subscription id
+	 */
+	function removeLowBalanceSubscription(uint256 _subscriptionId)
+		public
+		virtual
+		onlyValidExecutorAddress(msg.sender)
+	{
+		delete isLowBalanceSubscription[msg.sender][_subscriptionId];
+	}
+
+	/**
+	 * @notice This method allows owner to add the upkeeps in the core registry
+	 * @param upkeepAddress - indicates the upkeep address(pullPaynent contract which is keeper compatible)
+	 * @param upkeepId 			- indicates the upkeep id which is received after registering the upkeep in keeper registry.
+	 */
+	function setUpkeepId(address upkeepAddress, uint256 upkeepId) external virtual onlyOwner {
+		require(upkeepAddress != address(0), 'INVALID_UPKEEP_ADDRESS');
+		require(upkeepId > 0, 'INVALID_UPKEEP_ID');
+		upkeepIds[upkeepAddress] = upkeepId;
+	}
 
 	/**
 	 *	@notice Grant executor role account to call the execute function on the Executor.
@@ -114,6 +158,13 @@ contract PullPaymentsRegistry is OwnableUpgradeable, IPullPaymentRegistry {
 		executors[_addr] = true;
 		emit RegistryUpdated(_identifier, identifierHash, _addr);
 		emit ExecutorGranted(_addr);
+	}
+
+	/**
+	 * @notice This method allows owner to update the batch size for executing the subscriptions in batch
+	 */
+	function updateBatchSize(uint256 _batchSize) external onlyOwner {
+		BATCH_SIZE = _batchSize;
 	}
 
 	/*

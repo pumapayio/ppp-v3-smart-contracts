@@ -20,4 +20,8 @@ interface IRegistry is ICoreRegistry, IPullPaymentConfig {
 	function getUniswapRouter() external view returns (address);
 
 	function getPullPaymentRegistry() external view returns (address);
+
+	function getKeeperRegistry() external view returns (address);
+
+	function getTokenConverter() external view returns (address);
 }
