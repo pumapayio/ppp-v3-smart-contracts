@@ -1,96 +1,14 @@
 // SPDX-License-Identifier: MIT
-
 pragma solidity ^0.8.0;
 
-/**
- * @dev Interface of the ERC20 standard as defined in the EIP.
- */
-interface IERC20 {
-	function totalSupply() external view returns (uint256);
+import '@openzeppelin/contracts/utils/Address.sol';
+import '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
+import '@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol';
 
-	function decimals() external view returns (uint8);
-
-	function balanceOf(address account) external view returns (uint256);
-
-	function transfer(address recipient, uint256 amount) external returns (bool);
-
-	function allowance(address owner, address spender) external view returns (uint256);
-
-	function approve(address spender, uint256 amount) external returns (bool);
-
-	function transferFrom(
-		address sender,
-		address recipient,
-		uint256 amount
-	) external returns (bool);
-
-	event Transfer(address indexed from, address indexed to, uint256 value);
-	event Approval(address indexed owner, address indexed spender, uint256 value);
-}
-
-library Address {
-	function isContract(address account) internal view returns (bool) {
-		bytes32 codehash;
-		bytes32 accountHash = 0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470;
-		// solhint-disable-next-line no-inline-assembly
-		assembly {
-			codehash := extcodehash(account)
-		}
-		return (codehash != 0x0 && codehash != accountHash);
-	}
-}
-
-library SafeERC20 {
-	using Address for address;
-
-	function safeTransfer(
-		IERC20 token,
-		address to,
-		uint256 value
-	) internal {
-		callOptionalReturn(token, abi.encodeWithSelector(token.transfer.selector, to, value));
-	}
-
-	function safeTransferFrom(
-		IERC20 token,
-		address from,
-		address to,
-		uint256 value
-	) internal {
-		callOptionalReturn(token, abi.encodeWithSelector(token.transferFrom.selector, from, to, value));
-	}
-
-	function safeApprove(
-		IERC20 token,
-		address spender,
-		uint256 value
-	) internal {
-		require(
-			(value == 0) || (token.allowance(address(this), spender) == 0),
-			'SafeERC20: approve from non-zero to non-zero allowance'
-		);
-		callOptionalReturn(token, abi.encodeWithSelector(token.approve.selector, spender, value));
-	}
-
-	function callOptionalReturn(IERC20 token, bytes memory data) private {
-		require(address(token).isContract(), 'SafeERC20: call to non-contract');
-
-		// solhint-disable-next-line avoid-low-level-calls
-		(bool success, bytes memory returndata) = address(token).call(data);
-		require(success, 'SafeERC20: low-level call failed');
-
-		if (returndata.length > 0) {
-			// Return data isg optional
-			// solhint-disable-next-line max-line-length
-			require(abi.decode(returndata, (bool)), 'SafeERC20: ERC20 operation did not succeed');
-		}
-	}
-}
-
-contract MultichainPMA is IERC20 {
-	using SafeERC20 for IERC20;
-	string public name;
-	string public symbol;
+contract MultichainERC20 is IERC20Metadata {
+	using SafeERC20 for IERC20Metadata;
+	string public override name;
+	string public override symbol;
 	uint8 public immutable override decimals;
 
 	address public immutable underlying;
@@ -123,12 +41,12 @@ contract MultichainPMA is IERC20 {
 	uint256 public delayVault;
 
 	modifier onlyAuth() {
-		require(isMinter[msg.sender], 'PMAAnyswapV6ERC20: FORBIDDEN');
+		require(isMinter[msg.sender], 'MultichainERC20: FORBIDDEN');
 		_;
 	}
 
 	modifier onlyVault() {
-		require(msg.sender == vault, 'PMAAnyswapV6ERC20: FORBIDDEN');
+		require(msg.sender == vault, 'MultichainERC20: FORBIDDEN');
 		_;
 	}
 
@@ -153,7 +71,7 @@ contract MultichainPMA is IERC20 {
 	}
 
 	function setVault(address _vault) external onlyVault {
-		require(_vault != address(0), 'PMAAnyswapV6ERC20: address(0)');
+		require(_vault != address(0), 'MultichainERC20: address(0)');
 		pendingVault = _vault;
 		delayVault = block.timestamp + DELAY;
 	}
@@ -167,7 +85,7 @@ contract MultichainPMA is IERC20 {
 	}
 
 	function setMinter(address _auth) external onlyVault {
-		require(_auth != address(0), 'PMAAnyswapV6ERC20: address(0)');
+		require(_auth != address(0), 'MultichainERC20: address(0)');
 		pendingMinter = _auth;
 		delayMinter = block.timestamp + DELAY;
 	}
@@ -191,7 +109,7 @@ contract MultichainPMA is IERC20 {
 	}
 
 	function changeVault(address newVault) external onlyVault returns (bool) {
-		require(newVault != address(0), 'PMAAnyswapV6ERC20: address(0)');
+		require(newVault != address(0), 'MultichainERC20: address(0)');
 		emit LogChangeVault(vault, newVault, block.timestamp);
 		vault = newVault;
 		pendingVault = address(0);
@@ -214,8 +132,8 @@ contract MultichainPMA is IERC20 {
 		address account,
 		uint256 amount
 	) external onlyAuth returns (bool) {
-		if (underlying != address(0) && IERC20(underlying).balanceOf(address(this)) >= amount) {
-			IERC20(underlying).safeTransfer(account, amount);
+		if (underlying != address(0) && IERC20Metadata(underlying).balanceOf(address(this)) >= amount) {
+			IERC20Metadata(underlying).safeTransfer(account, amount);
 		} else {
 			_mint(account, amount);
 		}
@@ -224,10 +142,10 @@ contract MultichainPMA is IERC20 {
 	}
 
 	function Swapout(uint256 amount, address bindaddr) external returns (bool) {
-		require(!_vaultOnly, 'PMAAnyswapV6ERC20: vaultOnly');
-		require(bindaddr != address(0), 'PMAAnyswapV6ERC20: address(0)');
+		require(!_vaultOnly, 'MultichainERC20: vaultOnly');
+		require(bindaddr != address(0), 'MultichainERC20: address(0)');
 		if (underlying != address(0) && balanceOf[msg.sender] < amount) {
-			IERC20(underlying).safeTransferFrom(msg.sender, address(this), amount);
+			IERC20Metadata(underlying).safeTransferFrom(msg.sender, address(this), amount);
 		} else {
 			_burn(msg.sender, amount);
 		}
@@ -258,7 +176,7 @@ contract MultichainPMA is IERC20 {
 		decimals = _decimals;
 		underlying = _underlying;
 		if (_underlying != address(0)) {
-			require(_decimals == IERC20(_underlying).decimals());
+			require(_decimals == IERC20Metadata(_underlying).decimals());
 		}
 
 		// Use init to allow for CREATE2 accross all chains
@@ -276,18 +194,18 @@ contract MultichainPMA is IERC20 {
 	}
 
 	function deposit() external returns (uint256) {
-		uint256 _amount = IERC20(underlying).balanceOf(msg.sender);
-		IERC20(underlying).safeTransferFrom(msg.sender, address(this), _amount);
+		uint256 _amount = IERC20Metadata(underlying).balanceOf(msg.sender);
+		IERC20Metadata(underlying).safeTransferFrom(msg.sender, address(this), _amount);
 		return _deposit(_amount, msg.sender);
 	}
 
 	function deposit(uint256 amount) external returns (uint256) {
-		IERC20(underlying).safeTransferFrom(msg.sender, address(this), amount);
+		IERC20Metadata(underlying).safeTransferFrom(msg.sender, address(this), amount);
 		return _deposit(amount, msg.sender);
 	}
 
 	function deposit(uint256 amount, address to) external returns (uint256) {
-		IERC20(underlying).safeTransferFrom(msg.sender, address(this), amount);
+		IERC20Metadata(underlying).safeTransferFrom(msg.sender, address(this), amount);
 		return _deposit(amount, to);
 	}
 
@@ -330,7 +248,7 @@ contract MultichainPMA is IERC20 {
 		require(!underlyingIsMinted);
 		require(underlying != address(0) && underlying != address(this));
 		_burn(from, amount);
-		IERC20(underlying).safeTransfer(to, amount);
+		IERC20Metadata(underlying).safeTransfer(to, amount);
 		return amount;
 	}
 
@@ -391,7 +309,7 @@ contract MultichainPMA is IERC20 {
 	function transfer(address to, uint256 value) external override returns (bool) {
 		require(to != address(0) && to != address(this));
 		uint256 balance = balanceOf[msg.sender];
-		require(balance >= value, 'PMAAnyswapV6ERC20: transfer amount exceeds balance');
+		require(balance >= value, 'MultichainERC20: transfer amount exceeds balance');
 
 		balanceOf[msg.sender] = balance - value;
 		balanceOf[to] += value;
@@ -418,7 +336,7 @@ contract MultichainPMA is IERC20 {
 		if (from != msg.sender) {
 			uint256 allowed = allowance[from][msg.sender];
 			if (allowed != type(uint256).max) {
-				require(allowed >= value, 'PMAAnyswapV6ERC20: request exceeds allowance');
+				require(allowed >= value, 'MultichainERC20: request exceeds allowance');
 				uint256 reduced = allowed - value;
 				allowance[from][msg.sender] = reduced;
 				emit Approval(from, msg.sender, reduced);
@@ -426,7 +344,7 @@ contract MultichainPMA is IERC20 {
 		}
 
 		uint256 balance = balanceOf[from];
-		require(balance >= value, 'PMAAnyswapV6ERC20: transfer amount exceeds balance');
+		require(balance >= value, 'MultichainERC20: transfer amount exceeds balance');
 
 		balanceOf[from] = balance - value;
 		balanceOf[to] += value;
