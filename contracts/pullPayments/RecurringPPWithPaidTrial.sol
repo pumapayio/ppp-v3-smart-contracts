@@ -653,11 +653,11 @@ contract RecurringPullPaymentWithPaidTrial is
 	/**
 	 * @notice This method checks whether to execute the pullpayment for the given subscription id or not.
 	 * returns true if pullpayment is needed, otherwise returns false
-	 * @param _subsctptionId - indicates the subscription id
+	 * @param _subscriptionId - indicates the subscription id
 	 */
-	function isPullpayment(uint256 _subsctptionId) public view returns (bool) {
-		BillingModel storage bm = _billingModels[_subscriptionToBillingModel[_subsctptionId]];
-		Subscription storage subscription = bm.subscriptions[_subsctptionId];
+	function isPullpayment(uint256 _subscriptionId) public view returns (bool) {
+		BillingModel storage bm = _billingModels[_subscriptionToBillingModel[_subscriptionId]];
+		Subscription storage subscription = bm.subscriptions[_subscriptionId];
 
 		return (block.timestamp >= subscription.startTimestamp &&
 			block.timestamp >= subscription.nextPaymentTimestamp &&

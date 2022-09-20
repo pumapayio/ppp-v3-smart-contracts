@@ -751,13 +751,13 @@ contract RecurringDynamicPullPayment is
 	/**
 	 * @notice This method checks whether to execute the pullpayment for the given subscription id or not.
 	 * returns true if pullpayment is needed, otherwise returns false
-	 * @param _subsctptionId - indicates the subscription id
+	 * @param _subscriptionId - indicates the subscription id
 	 */
-	function isPullpayment(uint256 _subsctptionId) public view returns (bool) {
-		BillingModel storage bm = _billingModels[_subscriptionToBillingModel[_subsctptionId]];
+	function isPullpayment(uint256 _subscriptionId) public view returns (bool) {
+		BillingModel storage bm = _billingModels[_subscriptionToBillingModel[_subscriptionId]];
 
-		SubscriptionData storage _subscription = subscriptions[_subsctptionId].data;
-		_initilizeSubscription(_subscription, bm.recurringPPType, _subsctptionId);
+		SubscriptionData storage _subscription = subscriptions[_subscriptionId].data;
+		_initilizeSubscription(_subscription, bm.recurringPPType, _subscriptionId);
 
 		return (block.timestamp >= _subscription.startTimestamp &&
 			block.timestamp >= _subscription.nextPaymentTimestamp &&
