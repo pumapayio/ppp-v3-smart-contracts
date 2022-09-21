@@ -26,6 +26,9 @@ contract PullPaymentConfig is OwnableUpgradeable {
 	/// @notice list of supported tokens for pullPayments
 	address[] public supportedTokens;
 
+	/// @notice Extension period for pullpayments
+	uint256 public extensionPeriod;
+
 	/*
    	=======================================================================
    	======================== Constructor/Initializer ======================
@@ -47,6 +50,8 @@ contract PullPaymentConfig is OwnableUpgradeable {
 
 		updateExecutionFeeReceiver(_executionFeeReceiver);
 		updateExecutionFee(_executionFee);
+
+		extensionPeriod = 1 days;
 	}
 
 	/*
@@ -102,6 +107,13 @@ contract PullPaymentConfig is OwnableUpgradeable {
 		require(_newFee < 10000, 'PullPaymentConfig: INVALID_FEE_PERCENTAGE');
 		executionFee = _newFee;
 		emit UpdatedExecutionFee(_newFee);
+	}
+
+	/**
+	 * @notice allows owner to update the extension period for the pullpayment execution
+	 */
+	function updateExtensionPeriod(uint256 _newPeriod) external virtual onlyOwner {
+		extensionPeriod = _newPeriod;
 	}
 
 	/*

@@ -1,3 +1,3 @@
 const { verifyContracts } = require('./verifyContracts');
 
-verifyContracts('97');
+verifyContracts('80001');

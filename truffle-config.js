@@ -19,14 +19,16 @@
  *
  */
 
-const { mnemonic, BSCSCAN_API_KEY, infuraApiKey } = require('./secrets.json');
+const { mnemonic, BSCSCAN_API_KEY, ETHERSCAN_API_KEY, POLYSCAN_API_KEY, infuraApiKey } = require('./secrets.json');
 const test_data = require('./secrets.test.json');
 const HDWalletProvider = require('@truffle/hdwallet-provider');
 
 module.exports = {
 	plugins: ['solidity-coverage', 'truffle-plugin-verify', 'truffle-contract-size'],
 	api_keys: {
-		bscscan: BSCSCAN_API_KEY
+		bscscan: BSCSCAN_API_KEY,
+		polygonscan: POLYSCAN_API_KEY,
+		etherscan: ETHERSCAN_API_KEY
 	},
 	/**
 	 * Networks define how you connect to your ethereum client and let you set the
@@ -88,7 +90,8 @@ module.exports = {
 				new HDWalletProvider(mnemonic, `https://ropsten.infura.io/v3/${infuraApiKey}`),
 			network_id: 3,
 			gasPrice: 10e9,
-			skipDryRun: true
+			skipDryRun: true,
+			networkCheckTimeout: 20000000
 		},
 		rinkeby: {
 			provider: () =>
@@ -96,6 +99,32 @@ module.exports = {
 			network_id: 4,
 			gasPrice: 10e9,
 			skipDryRun: true
+		},
+		mumbai: {
+			provider: () =>
+				new HDWalletProvider(mnemonic, 'https://matic-mumbai.chainstacklabs.com'),
+			// https://rpc-mumbai.maticvigil.com/
+			// https://matic-mumbai.chainstacklabs.com
+			// https://rpc-mumbai.matic.today
+			network_id: 80001,
+			gasPrice: 50e9,
+			skipDryRun: true,
+			timeout: 20000000,
+			networkCheckTimeout: 20000000,
+			timeoutBlocks: 200
+		},
+		matic: {
+			provider: () =>
+				new HDWalletProvider(mnemonic, 'https://matic-mainnet.chainstacklabs.com/'),
+			// https://rpc-mumbai.maticvigil.com/
+			// https://matic-mumbai.chainstacklabs.com
+			// https://rpc-mumbai.matic.today
+			network_id: 137,
+			gasPrice: 10e9,
+			skipDryRun: true,
+			timeout: 20000000,
+			networkCheckTimeout: 20000000,
+			timeoutBlocks: 200
 		}
 		// Useful for deploying to a public network.
 		// NB: It's important to wrap the provider as a function.

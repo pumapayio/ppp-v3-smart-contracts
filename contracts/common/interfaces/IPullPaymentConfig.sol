@@ -9,4 +9,6 @@ interface IPullPaymentConfig {
 	function executionFeeReceiver() external view returns (address);
 
 	function executionFee() external view returns (uint256);
+
+	function extensionPeriod() external view returns (uint256);
 }

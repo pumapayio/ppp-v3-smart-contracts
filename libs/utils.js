@@ -99,6 +99,9 @@ const deploySmartContracts = async (owner, merchant, customer, user, fundRceiver
 
 	await registry.setAddressFor('PullPaymentsRegistry', ppRegistry.address);
 
+	// update extension period
+	await registry.updateExtensionPeriod('120');
+
 	// Executor
 	const executor = await Executor.new(registry.address);
 
@@ -228,7 +231,23 @@ const getDeployedContract = async (contractName, artifacts) => {
 	return Contract.at(contract.address);
 };
 
+const getRegistry = async (networkId, artifacts) => {
+	const Contract = artifacts.require('Registry');
+	const addresses = require(`../configurations/${networkId}/Addresses.json`);
+
+	return await Contract.at(addresses[networkId]['Registry']);
+};
+
+const getPPRegistry = async (networkId, artifacts) => {
+	const Contract = artifacts.require('PullPaymentsRegistry');
+	const addresses = require(`../configurations/${networkId}/Addresses.json`);
+
+	return await Contract.at(addresses[networkId]['PullPaymentsRegistry']);
+};
+
 module.exports = {
 	deploySmartContracts,
-	getDeployedContract
+	getDeployedContract,
+	getRegistry,
+	getPPRegistry
 };

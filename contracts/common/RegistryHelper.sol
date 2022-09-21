@@ -3,6 +3,8 @@ pragma solidity ^0.8.0;
 
 import '@openzeppelin/contracts/access/Ownable.sol';
 import './interfaces/IRegistry.sol';
+import './interfaces/IBEP20.sol';
+import './interfaces/IExecutor.sol';
 
 /**
  * @title RegistryHelper - initializer for core registry
@@ -53,5 +55,20 @@ contract RegistryHelper is Ownable {
 		require(registryAddress != address(0), 'RegistryHelper: CANNOT_REGISTER_ZERO_ADDRESS');
 		registry = IRegistry(registryAddress);
 		emit RegistrySet(registryAddress);
+	}
+
+	function hasEnoughBalance(
+		address _subscriber,
+		address _paymentToken,
+		address _settlementToken,
+		uint256 _amount
+	) public view returns (bool) {
+		(, uint256 userPayableAmount, ) = IExecutor(registry.getExecutor()).getReceivingAmount(
+			_paymentToken,
+			_settlementToken,
+			_amount
+		);
+
+		return IBEP20(_paymentToken).balanceOf(_subscriber) >= userPayableAmount;
 	}
 }

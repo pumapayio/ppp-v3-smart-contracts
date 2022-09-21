@@ -4,11 +4,11 @@ import '@openzeppelin/contracts/utils/Counters.sol';
 import '@openzeppelin/contracts/security/ReentrancyGuard.sol';
 import '@openzeppelin/contracts/utils/Strings.sol';
 import '../common/RegistryHelper.sol';
+import '../common/KeeperCompatible.sol';
 
 import './interfaces/IRecurringDynamicPP.sol';
 import '../common/interfaces/IPullPaymentRegistry.sol';
 import '../common/interfaces/IVersionedContract.sol';
-import '../common/interfaces/IExecutor.sol';
 
 /**
  * @title RecurringDynamicPullPayment
@@ -21,6 +21,7 @@ contract RecurringDynamicPullPayment is
 	ReentrancyGuard,
 	RegistryHelper,
 	IRecurringDynamicPullPayment,
+	KeeperCompatible,
 	IVersionedContract
 {
 	using Counters for Counters.Counter;
@@ -85,9 +86,9 @@ contract RecurringDynamicPullPayment is
 
 	/// @dev billing model ID => billing model details
 	mapping(uint256 => Subscription) private subscriptions;
-	/// @dev subscription ID => billing model ID
+	/// @dev subscription ID => Free trial model details
 	mapping(uint256 => FreeTrial) private freeTrialSubscriptions;
-	/// @dev pull payment ID => subscription ID
+	/// @dev subscription ID => Paid trial details
 	mapping(uint256 => PaidTrial) private paidTrialSubscriptions;
 
 	/// @notice Mappings by ids
@@ -143,12 +144,16 @@ contract RecurringDynamicPullPayment is
 		address payee,
 		address payer
 	);
+
 	event PullPaymentExecuted(
 		uint256 indexed subscriptionID,
 		uint256 indexed pullPaymentID,
 		uint256 indexed billingModelID,
 		address payee,
-		address payer
+		address payer,
+		uint256 executionFee,
+		uint256 userAmount,
+		uint256 receiverAmount
 	);
 
 	event SubscriptionCancelled(
@@ -162,7 +167,8 @@ contract RecurringDynamicPullPayment is
 		uint256 indexed billingModelID,
 		address indexed newPayee,
 		address indexed oldPayee,
-		string newMerchantName
+		string newMerchantName,
+		string newMerchantUrl
 	);
 
 	/*
@@ -314,7 +320,14 @@ contract RecurringDynamicPullPayment is
 
 		_subscribe(_billingModelID, newSubscriptionID, _trialPeriod, _initialAmount, _reference);
 
-		_executeFirstPayment(bm, newSubscriptionID, _settlementToken, _paymentToken, _initialAmount);
+		_executeFirstPayment(
+			_billingModelID,
+			bm,
+			newSubscriptionID,
+			_settlementToken,
+			_paymentToken,
+			_initialAmount
+		);
 
 		emit NewSubscription(_billingModelID, newSubscriptionID, bm.payee, msg.sender);
 
@@ -387,6 +400,7 @@ contract RecurringDynamicPullPayment is
 	}
 
 	function _executeFirstPayment(
+		uint256 _billingModelID,
 		BillingModel storage bm,
 		uint256 newSubscriptionID,
 		address _settlementToken,
@@ -397,14 +411,19 @@ contract RecurringDynamicPullPayment is
 			_executePullPayment(newSubscriptionID);
 		} else if (bm.recurringPPType == 3) {
 			//execute the payment for paid trial
-			require(
-				IExecutor(registry.getExecutor()).execute(
-					_settlementToken,
-					_paymentToken,
-					msg.sender,
-					bm.payee,
-					_initialAmount
-				)
+			(uint256 executionFee, uint256 userAmount, uint256 receiverAmount) = IExecutor(
+				registry.getExecutor()
+			).execute(_settlementToken, _paymentToken, msg.sender, bm.payee, _initialAmount);
+
+			emit PullPaymentExecuted(
+				newSubscriptionID,
+				0,
+				_billingModelID,
+				bm.payee,
+				msg.sender,
+				executionFee,
+				userAmount,
+				receiverAmount
 			);
 		}
 	}
@@ -503,22 +522,25 @@ contract RecurringDynamicPullPayment is
 		// link pull payment with "payer"
 		_pullPaymentIdsByAddress[_subscription.subscriber].push(newPullPaymentID);
 
-		require(
-			IExecutor(registry.getExecutor()).execute(
+		(uint256 executionFee, uint256 userAmount, uint256 receiverAmount) = IExecutor(
+			registry.getExecutor()
+		).execute(
 				_subscription.settlementToken,
 				_subscription.paymentToken,
 				_subscription.subscriber,
 				bm.payee,
 				_subscription.paymentAmount
-			)
-		);
+			);
 
 		emit PullPaymentExecuted(
 			_subscriptionID,
 			newPullPaymentID,
 			billingModelID,
 			bm.payee,
-			_subscription.subscriber
+			_subscription.subscriber,
+			executionFee,
+			userAmount,
+			receiverAmount
 		);
 
 		return newPullPaymentID;
@@ -597,8 +619,32 @@ contract RecurringDynamicPullPayment is
 		bm.merchantName = _newMerchantName;
 		bm.merchantURL = _newMerchantURL;
 
-		emit BillingModelEdited(_billingModelID, _newPayee, msg.sender, _newMerchantName);
+		emit BillingModelEdited(
+			_billingModelID,
+			_newPayee,
+			msg.sender,
+			_newMerchantName,
+			_newMerchantURL
+		);
 		return _billingModelID;
+	}
+
+	function _cancelSubscription(
+		uint256 _subscriptionID,
+		SubscriptionData storage subscription,
+		BillingModel storage bm
+	) internal {
+		subscription.cancelTimestamp = block.timestamp;
+		subscription.cancelledBy = msg.sender;
+
+		_inactiveSubscriptionsByAddress[msg.sender].push(_subscriptionID);
+
+		emit SubscriptionCancelled(
+			_subscriptionToBillingModel[_subscriptionID],
+			_subscriptionID,
+			bm.payee,
+			subscription.subscriber
+		);
 	}
 
 	/*
@@ -606,6 +652,118 @@ contract RecurringDynamicPullPayment is
    	======================== Getter Methods ===============================
    	=======================================================================
  	*/
+
+	/**
+	 * @dev This method is called by Keeper network nodes per block. This returns the list of subscription ids and their count which needs to be executed.
+	 * @param checkData specified in the upkeep registration so it is always the same for a registered upkeep.
+	 * @return upkeepNeeded boolean to indicate whether the keeper should call performUpkeep or not.
+	 * @return performData bytes that the keeper should call performUpkeep with, if upkeep is needed.
+	 */
+	function checkUpkeep(bytes calldata checkData)
+		external
+		view
+		override
+		returns (bool upkeepNeeded, bytes memory performData)
+	{
+		checkData;
+
+		(uint256[] memory subsctionIds, uint256 subcriptionCount) = getSubscriptionIds();
+
+		if (subcriptionCount > 0) {
+			upkeepNeeded = true;
+			performData = abi.encode(subsctionIds, subcriptionCount);
+		}
+	}
+
+	/**
+	 * @notice method that is actually executed by the keepers, via the registry.
+	 * The data returned by the checkUpkeep simulation will be passed into this method to actually be executed.
+	 * @param performData is the data which was passed back from the checkData
+	 * simulation. If it is encoded, it can easily be decoded into other types by
+	 * calling `abi.decode`. This data should not be trusted, and should be
+	 * validated against the contract's current state.
+	 */
+	function performUpkeep(bytes calldata performData) external override {
+		(uint256[] memory subsctionIds, uint256 subcriptionCount) = abi.decode(
+			performData,
+			(uint256[], uint256)
+		);
+		IPullPaymentRegistry ppRegistry = IPullPaymentRegistry(registry.getPullPaymentRegistry());
+
+		for (uint256 subIndex = 0; subIndex < subcriptionCount; subIndex++) {
+			BillingModel storage bm = _billingModels[_subscriptionToBillingModel[subsctionIds[subIndex]]];
+			SubscriptionData storage subscription = subscriptions[subsctionIds[subIndex]].data;
+
+			if (
+				RegistryHelper.hasEnoughBalance(
+					subscription.subscriber,
+					subscription.paymentToken,
+					subscription.settlementToken,
+					subscription.paymentAmount
+				)
+			) {
+				if (ppRegistry.isLowBalanceSubscription(address(this), subsctionIds[subIndex])) {
+					ppRegistry.removeLowBalanceSubscription(subsctionIds[subIndex]);
+				}
+
+				_executePullPayment(subsctionIds[subIndex]);
+			} else {
+				if (!ppRegistry.isLowBalanceSubscription(address(this), subsctionIds[subIndex])) {
+					ppRegistry.addLowBalanceSubscription(subsctionIds[subIndex]);
+				}
+				// cancel pullpayment if extented time is finished
+				if (block.timestamp > (subscription.nextPaymentTimestamp + registry.extensionPeriod())) {
+					_cancelSubscription(subsctionIds[subIndex], subscription, bm);
+				}
+			}
+		}
+	}
+
+	/**
+	 * @notice This method gets the list of subscription ids which needs to be executed
+	 * @return subscriptionIds - indicates the list of subscrtipion ids
+	 * count - indicates the total number of subscriptions to execute
+	 */
+	function getSubscriptionIds()
+		public
+		view
+		returns (uint256[] memory subscriptionIds, uint256 count)
+	{
+		IPullPaymentRegistry ppRegistry = IPullPaymentRegistry(registry.getPullPaymentRegistry());
+
+		uint256 batchSize = ppRegistry.BATCH_SIZE();
+		subscriptionIds = new uint256[](batchSize);
+
+		for (uint256 id = 1; id <= _subscriptionIDs.current(); id++) {
+			SubscriptionData storage subscription = subscriptions[id].data;
+
+			bool isValid = (ppRegistry.isLowBalanceSubscription(address(this), id) &&
+				block.timestamp > (subscription.nextPaymentTimestamp + registry.extensionPeriod())) ||
+				!ppRegistry.isLowBalanceSubscription(address(this), id);
+
+			if (isValid && isPullpayment(id) && count < batchSize) {
+				subscriptionIds[count] = id;
+				count++;
+			}
+		}
+	}
+
+	/**
+	 * @notice This method checks whether to execute the pullpayment for the given subscription id or not.
+	 * returns true if pullpayment is needed, otherwise returns false
+	 * @param _subscriptionId - indicates the subscription id
+	 */
+	function isPullpayment(uint256 _subscriptionId) public view returns (bool) {
+		BillingModel storage bm = _billingModels[_subscriptionToBillingModel[_subscriptionId]];
+
+		SubscriptionData storage _subscription = subscriptions[_subscriptionId].data;
+		_initilizeSubscription(_subscription, bm.recurringPPType, _subscriptionId);
+
+		return (block.timestamp >= _subscription.startTimestamp &&
+			block.timestamp >= _subscription.nextPaymentTimestamp &&
+			_subscription.cancelTimestamp == 0 &&
+			_subscription.remainingPayments > 0);
+	}
 
 	/**
 	 * @notice Retrieves a billing model
