@@ -7,7 +7,8 @@ const {
 	UniswapFactoryAddress,
 	UniswapV2Router02Address,
 	WBNB_ADDRESS,
-	BUSD_ADDRESS
+	BUSD_ADDRESS,
+	keeperRegistry
 } = require('../configurations/config');
 
 const PMA = artifacts.require('BEP20PMA');
@@ -25,6 +26,7 @@ const RecurringPPWithPaidTrial = artifacts.require('RecurringPullPaymentWithPaid
 const SinglePullPayment = artifacts.require('SinglePullPayment');
 const SingleDynamicPullPayment = artifacts.require('SingleDynamicPullPayment');
 const RecurringDynamicPullPayment = artifacts.require('RecurringDynamicPullPayment');
+const TokenConverter = artifacts.require('TokenConverter');
 
 const oneMillionPMA = web3.utils.toWei('1000000', 'ether');
 
@@ -52,6 +54,7 @@ const deploySmartContracts = async (owner, merchant, customer, user, fundRceiver
 
 	// RecurringDynamicPullPayment
 	const recurringDynamicPullPayment = await RecurringDynamicPullPayment.new(registry.address);
+
 
 	// BEP20 ADA Token
 	const cardano = await Cardano.new({ from: owner });
@@ -98,6 +101,11 @@ const deploySmartContracts = async (owner, merchant, customer, user, fundRceiver
 	}
 
 	await registry.setAddressFor('PullPaymentsRegistry', ppRegistry.address);
+	await registry.setAddressFor('KeeperRegistry', keeperRegistry[networkId], { from: owner });
+
+	const tokenConverter = await TokenConverter.new(registry.address);
+
+	await registry.setAddressFor('TokenConverter', tokenConverter.address, { from: owner });
 
 	// update extension period
 	await registry.updateExtensionPeriod('120');

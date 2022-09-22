@@ -1,40 +1,49 @@
 {
 	"RecurringPullPayment": {
-		"createBillingModel": "0.00332515",
-		"subscribeToBillingModel": "0.00625261",
-		"cancelSubscription": "0.00113467",
-		"editBillingModel": "0.00076099",
-		"executePullPayment": "0.00302527"
+		"createBillingModel": "0.00327205",
+		"subscribeToBillingModel": "0.00612841",
+		"cancelSubscription": "0.00111641",
+		"editBillingModel": "0.00072021",
+		"executePullPayment": "0.00297217"
 	},
 	"RecurringDynamicPullPayment": {
-		"createBillingModel": "0.0023966",
-		"subscribeToBillingModel": "0.00845153",
-		"cancelSubscription": "0.00114948",
-		"editBillingModel": "0.0005106",
-		"executePullPayment": "0.00270242"
+		"createBillingModel": "0.00236401",
+		"subscribeToBillingModel": "0.00818545",
+		"cancelSubscription": "0.00112629",
+		"editBillingModel": "0.0004828",
+		"executePullPayment": "0.00260755"
 	},
 	"RecurringPPWithPaidTrial": {
-		"createBillingModel": "0.00434845",
-		"subscribeToBillingModel": "0.00409182",
-		"cancelSubscription": "0.00113489",
-		"editBillingModel": "0.00039523",
-		"executePullPayment": "0.00327828"
+		"createBillingModel": "0.00428846",
+		"subscribeToBillingModel": "0.00403356",
+		"cancelSubscription": "0.00111657",
+		"editBillingModel": "0.00037509",
+		"executePullPayment": "0.00318146"
 	},
 	"RecurringPullPaymentWithFreeTrial": {
-		"createBillingModel": "0.00414069",
-		"subscribeToBillingModel": "0.00300145",
-		"cancelSubscription": "0.00113467",
-		"editBillingModel": "0.00039512",
-		"executePullPayment": "0.0035785"
+		"createBillingModel": "0.00408332",
+		"subscribeToBillingModel": "0.00296685",
+		"cancelSubscription": "0.00111638",
+		"editBillingModel": "0.00037498",
+		"executePullPayment": "0.00347946"
 	},
 	"SingleDynamicPullPayment": {
-		"createBillingModel": "0.00217749",
-		"subscribeToBillingModel": "0.00638878",
-		"editBillingModel": "0.00051038"
+		"createBillingModel": "0.00214627",
+		"subscribeToBillingModel": "0.00627934",
+		"editBillingModel": "0.0004804"
 	},
 	"SinglePullPayment": {
-		"createBillingModel": "0.00352547",
-		"subscribeToBillingModel": "0.00526664",
-		"editBillingModel": "0.0005653"
+		"createBillingModel": "0.00347724",
+		"subscribeToBillingModel": "0.00517305",
+		"editBillingModel": "0.00051209"
+	},
+	"SwapTest": {
+		"subscribeToBillingModel(PMA->PMA)": "0.0051807",
+		"subscribeToBillingModel(WBNB->ADA)": "0.00713728",
+		"subscribeToBillingModel(ADA->WBNB)": "0.00657604",
+		"subscribeToBillingModel(ADA->ETH)": "0.00772804",
+		"subscribeToBillingModel(WBNB->PMA)": "0.00543618",
+		"subscribeToBillingModel(ADA->ADA)": "0.00617639",
+		"subscribeToBillingModel(PMA->WBNB)": "0.00532885"
 	}
 }
