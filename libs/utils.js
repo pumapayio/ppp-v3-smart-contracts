@@ -1,5 +1,6 @@
 // Load dependencies
 const { web3 } = require('@openzeppelin/test-environment');
+const { ether } = require('@openzeppelin/test-helpers');
 const { deployProxy } = require('@openzeppelin/truffle-upgrades');
 
 const {
@@ -27,6 +28,7 @@ const SinglePullPayment = artifacts.require('SinglePullPayment');
 const SingleDynamicPullPayment = artifacts.require('SingleDynamicPullPayment');
 const RecurringDynamicPullPayment = artifacts.require('RecurringDynamicPullPayment');
 const TokenConverter = artifacts.require('TokenConverter');
+const KeeperRegistryMock = artifacts.require('KeeperRegistryMock');
 
 const oneMillionPMA = web3.utils.toWei('1000000', 'ether');
 
@@ -160,7 +162,13 @@ const deploySmartContracts = async (owner, customer, user, networkId) => {
 	});
 
 
-	await registry.setAddressFor('KeeperRegistry', keeperRegistry[networkId]);
+	const keeperRegistryContract = await KeeperRegistryMock.new(ethereum.address);
+	await registry.setAddressFor('KeeperRegistry', keeperRegistryContract.address);
+	await keeperRegistryContract.addFunds(1, ether('10'));
+	await keeperRegistryContract.addFunds(2, ether('10'));
+	await keeperRegistryContract.addFunds(3, ether('10'));
+	await keeperRegistryContract.addFunds(4, ether('10'));
+
 	const tokenConverter = await TokenConverter.new(registry.address);
 	await registry.setAddressFor('TokenConverter', tokenConverter.address);
 
