@@ -7,7 +7,9 @@ const {
 	UniswapFactoryAddress,
 	UniswapV2Router02Address,
 	WBNB_ADDRESS,
-	BUSD_ADDRESS
+	BUSD_ADDRESS,
+	keeperRegistry,
+	ExecutionFeeReceiver
 } = require('../configurations/config');
 
 const PMA = artifacts.require('BEP20PMA');
@@ -25,10 +27,14 @@ const RecurringPPWithPaidTrial = artifacts.require('RecurringPullPaymentWithPaid
 const SinglePullPayment = artifacts.require('SinglePullPayment');
 const SingleDynamicPullPayment = artifacts.require('SingleDynamicPullPayment');
 const RecurringDynamicPullPayment = artifacts.require('RecurringDynamicPullPayment');
+const TokenConverter = artifacts.require('TokenConverter');
 
 const oneMillionPMA = web3.utils.toWei('1000000', 'ether');
 
 const deploySmartContracts = async (owner, merchant, customer, user, fundRceiver, networkId) => {
+
+	fundRceiver = ExecutionFeeReceiver;
+
 	// Registry
 	const registry = await deployProxy(Registry, [fundRceiver, 1000], { initializer: 'initialize' });
 
@@ -156,6 +162,17 @@ const deploySmartContracts = async (owner, merchant, customer, user, fundRceiver
 		from: owner
 	});
 
+
+	await registry.setAddressFor('KeeperRegistry', keeperRegistry[networkId]);
+	const tokenConverter = await TokenConverter.new(registry.address);
+	await registry.setAddressFor('TokenConverter', tokenConverter.address);
+
+
+	await ppRegistry.setUpkeepId(recurringPP.address, 1);
+	await ppRegistry.setUpkeepId(recurringPPWithFreeTrial.address, 2);
+	await ppRegistry.setUpkeepId(recurringPPWithPaidTrial.address, 3);
+	await ppRegistry.setUpkeepId(recurringDynamicPullPayment.address, 4);
+
 	return {
 		registry: {
 			contract: registry,
@@ -196,6 +213,10 @@ const deploySmartContracts = async (owner, merchant, customer, user, fundRceiver
 		recurringDynamicPullPayment: {
 			contract: recurringDynamicPullPayment,
 			address: recurringDynamicPullPayment.address
+		},
+		tokenConverter: {
+			contract: tokenConverter,
+			address: tokenConverter.address
 		},
 		cardano: {
 			contract: cardano,

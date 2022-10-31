@@ -31,6 +31,7 @@ contract.skip('RecurringPullPayment', (accounts) => {
 	let ethToken = {};
 	let adaToken = {};
 	let executor = {};
+	let fundRceiver;
 
 	beforeEach(async () => {
 		this.BlockData = await BlockData.new();
@@ -49,6 +50,7 @@ contract.skip('RecurringPullPayment', (accounts) => {
 		pmaToken = contracts.pmaToken.contract;
 		ethToken = await ETHToken.at(ETH_ADDRESS);
 		adaToken = await ADAToken.at(ADA_ADDRESS);
+		fundRceiver = contracts.tokenConverter.address;
 
 		const importedAccount = await web3.eth.personal.importRawKey(
 			'0x6b6194405ccbda230dc4bde23889b0cffc1b8874567033b5f275460d2d18e40f',

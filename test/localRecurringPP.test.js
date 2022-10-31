@@ -12,7 +12,7 @@ const BlockData = artifacts.require('BlockData');
 
 // Start test block
 contract('RecurringPullPayment', (accounts) => {
-	let [owner, merchant, customer, user, user1, fundRceiver] = accounts;
+	let [owner, merchant, customer, user, user1,] = accounts;
 
 	const billingModel = {
 		payee: merchant,
@@ -30,6 +30,7 @@ contract('RecurringPullPayment', (accounts) => {
 	let ethToken = {};
 	let adaToken = {};
 	let executor = {};
+	let fundRceiver;
 
 	before(async () => {
 		this.BlockData = await BlockData.new();
@@ -49,6 +50,7 @@ contract('RecurringPullPayment', (accounts) => {
 		pmaToken = contracts.pmaToken.contract;
 		ethToken = contracts.ethereum.contract;
 		adaToken = contracts.cardano.contract;
+		fundRceiver = contracts.tokenConverter.address;
 
 		await ethToken.approve(executor.address, MaxUint256, { from: customer });
 		await adaToken.approve(executor.address, MaxUint256, { from: customer });
@@ -725,7 +727,7 @@ contract('RecurringPullPayment', (accounts) => {
 
 			it('should revert when invalid billing model id is specified', async () => {
 				await expectRevert(
-					this.contract.getBillingModel(5),
+					this.contract.getBillingModel(15),
 					'RecurringPullPayment: INVALID_BILLING_MODEL_ID'
 				);
 				await expectRevert(

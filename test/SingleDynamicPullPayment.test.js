@@ -11,7 +11,7 @@ const { getGasCost } = require('./helpers/gasCost');
 const BlockData = artifacts.require('BlockData');
 // Start test block
 contract('SingleDynamicPullPayment', (accounts) => {
-	let [owner, merchant, customer, user, fundRceiver] = accounts;
+	let [owner, merchant, customer, user] = accounts;
 	const name = web3.utils.padRight(web3.utils.fromAscii('some name'), 64);
 
 	const billingModel = {
@@ -26,6 +26,8 @@ contract('SingleDynamicPullPayment', (accounts) => {
 	let ethToken = {};
 	let adaToken = {};
 	let executor = {};
+
+	let fundRceiver;
 
 	before(async () => {
 		this.BlockData = await BlockData.new();
@@ -45,6 +47,7 @@ contract('SingleDynamicPullPayment', (accounts) => {
 		pmaToken = contracts.pmaToken.contract;
 		ethToken = contracts.ethereum.contract;
 		adaToken = contracts.cardano.contract;
+		fundRceiver = contracts.tokenConverter.address;
 
 		await ethToken.approve(executor.address, MaxUint256, { from: customer });
 		await adaToken.approve(executor.address, MaxUint256, { from: customer });
