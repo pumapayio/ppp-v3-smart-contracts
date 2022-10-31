@@ -37,10 +37,8 @@ contract('Recurring Dynamic PullPayment', (accounts) => {
 		// Deploy a set of smart contracts...
 		contracts = await deploySmartContracts(
 			owner,
-			merchant,
 			customer,
 			user,
-			fundRceiver,
 			this.chainId.toString()
 		);
 

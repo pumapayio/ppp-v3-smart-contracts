@@ -38,10 +38,8 @@ contract('PullPaymentRegistry', (accounts) => {
 		// Deploy a set of smart contracts...
 		contracts = await deploySmartContracts(
 			owner,
-			merchant,
 			customer,
 			user,
-			fundRceiver,
 			this.chainId.toString()
 		);
 		executor = contracts.executor.contract;
@@ -225,12 +223,6 @@ contract('PullPaymentRegistry', (accounts) => {
 			});
 		});
 
-		it('updateExecutionFeeReceiver()', async () => {
-			await expectRevert(
-				this.registry.updateExecutionFeeReceiver(ZERO_ADDRESS, { from: owner }),
-				'PullPaymentConfig: INVALID_FEE_RECEIVER'
-			);
-		});
 
 		it('getSupportedTokens()', async () => {
 			const supportedTokens = await this.registry.getSupportedTokens();

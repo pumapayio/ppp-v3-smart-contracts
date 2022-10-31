@@ -17,9 +17,6 @@ contract PullPaymentConfig is OwnableUpgradeable {
    	=======================================================================
  	*/
 
-	/// @notice Pullpayment Execution fee receiver address
-	address public executionFeeReceiver;
-
 	/// @notice Executopm fee percentage. 1 - 100%
 	uint256 public executionFee;
 
@@ -36,19 +33,11 @@ contract PullPaymentConfig is OwnableUpgradeable {
  	*/
 	/**
 	 * @notice Used in place of the constructor to allow the contract to be upgradable via proxy.
-	 * @param _executionFeeReceiver - indiactes the execution fee receiver address
 	 * @param _executionFee 				- indicates the execution fee percentage. 1% - 99%
 	 */
-	function init_PullPaymentConfig(address _executionFeeReceiver, uint256 _executionFee)
-		public
-		virtual
-		initializer
-	{
-		require(_executionFeeReceiver != address(0), 'PullPaymentConfig: INVALID_FEE_RECEIVER');
-
+	function init_PullPaymentConfig(uint256 _executionFee) public virtual initializer {
 		__Ownable_init();
 
-		updateExecutionFeeReceiver(_executionFeeReceiver);
 		updateExecutionFee(_executionFee);
 
 		extensionPeriod = 1 days;
@@ -61,7 +50,6 @@ contract PullPaymentConfig is OwnableUpgradeable {
  	*/
 	event SupportedTokenAdded(address indexed _token);
 	event SupportedTokenRemoved(address indexed _token);
-	event UpdatedExecutionFeeReceiver(address indexed _newReceiver);
 	event UpdatedExecutionFee(uint256 indexed _newFee);
 
 	/*
@@ -86,16 +74,6 @@ contract PullPaymentConfig is OwnableUpgradeable {
 	function removeToken(address _tokenAddress) external virtual onlyOwner {
 		PullPaymentUtils.removeAddressFromList(supportedTokens, _tokenAddress);
 		emit SupportedTokenRemoved(_tokenAddress);
-	}
-
-	/**
-	 * @dev This method allows owner to update the execution fee receiver address. only owner can update this address.
-	 * @param _newReceiver - address of new execution fee receiver
-	 */
-	function updateExecutionFeeReceiver(address _newReceiver) public virtual onlyOwner {
-		require(_newReceiver != address(0), 'PullPaymentConfig: INVALID_FEE_RECEIVER');
-		executionFeeReceiver = _newReceiver;
-		emit UpdatedExecutionFeeReceiver(_newReceiver);
 	}
 
 	/**

@@ -35,14 +35,10 @@ contract Registry is OwnableUpgradeable, CoreRegistry, PullPaymentConfig {
 	 * @notice Used in place of the constructor to allow the contract to be upgradable via proxy.
 	 * @dev This initializes the core registry and the pullpayment contracts.
 	 */
-	function initialize(address _executionFeeReceiver, uint256 _executionFee)
-		external
-		virtual
-		initializer
-	{
+	function initialize(uint256 _executionFee) external virtual initializer {
 		__Ownable_init();
 		_init_coreRegistry();
-		init_PullPaymentConfig(_executionFeeReceiver, _executionFee);
+		init_PullPaymentConfig(_executionFee);
 	}
 
 	/*

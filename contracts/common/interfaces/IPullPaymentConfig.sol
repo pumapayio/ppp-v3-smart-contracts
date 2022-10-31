@@ -6,8 +6,6 @@ interface IPullPaymentConfig {
 
 	function isSupportedToken(address _tokenAddress) external view returns (bool isExists);
 
-	function executionFeeReceiver() external view returns (address);
-
 	function executionFee() external view returns (uint256);
 
 	function extensionPeriod() external view returns (uint256);

@@ -9,7 +9,6 @@ const {
 	WBNB_ADDRESS,
 	BUSD_ADDRESS,
 	keeperRegistry,
-	ExecutionFeeReceiver
 } = require('../configurations/config');
 
 const PMA = artifacts.require('BEP20PMA');
@@ -31,12 +30,10 @@ const TokenConverter = artifacts.require('TokenConverter');
 
 const oneMillionPMA = web3.utils.toWei('1000000', 'ether');
 
-const deploySmartContracts = async (owner, merchant, customer, user, fundRceiver, networkId) => {
-
-	fundRceiver = ExecutionFeeReceiver;
+const deploySmartContracts = async (owner, customer, user, networkId) => {
 
 	// Registry
-	const registry = await deployProxy(Registry, [fundRceiver, 1000], { initializer: 'initialize' });
+	const registry = await deployProxy(Registry, [1000], { initializer: 'initialize' });
 
 	// PullPayment Registry
 	const ppRegistry = await deployProxy(PullPaymentRegistry, [], { initializer: 'initialize' });
