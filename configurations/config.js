@@ -191,6 +191,9 @@ const MPC_ADDRESS = {
 
 const ExecutionFee = 1000; // 10%
 
+const TotalMintCapForWrapper = '50000000000000000000000000'; // 50M
+const PumaPayWrapperAdmin = '0xaD679804243814D016eC2EB1972E745729051942';
+
 module.exports = {
 	supportedTokens,
 	PMATokenAddress,
@@ -201,5 +204,7 @@ module.exports = {
 	WBNB_ADDRESS,
 	BUSD_ADDRESS,
 	faucets,
-	keeperRegistry
+	keeperRegistry,
+	TotalMintCapForWrapper,
+	PumaPayWrapperAdmin
 };

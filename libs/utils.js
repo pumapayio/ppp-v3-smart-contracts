@@ -58,6 +58,7 @@ const deploySmartContracts = async (owner, customer, user, networkId) => {
 	// RecurringDynamicPullPayment
 	const recurringDynamicPullPayment = await RecurringDynamicPullPayment.new(registry.address);
 
+
 	// BEP20 ADA Token
 	const cardano = await Cardano.new({ from: owner });
 	// BEP20 ETHEREUM Token
@@ -103,6 +104,10 @@ const deploySmartContracts = async (owner, customer, user, networkId) => {
 	}
 
 	await registry.setAddressFor('PullPaymentsRegistry', ppRegistry.address);
+	await registry.setAddressFor('KeeperRegistry', keeperRegistry[networkId], { from: owner });
+
+	const tokenConverter = await TokenConverter.new(registry.address);
+	await registry.setAddressFor('TokenConverter', tokenConverter.address, { from: owner });
 
 	// update extension period
 	await registry.updateExtensionPeriod('120');
@@ -168,10 +173,6 @@ const deploySmartContracts = async (owner, customer, user, networkId) => {
 	await keeperRegistryContract.addFunds(2, ether('10'));
 	await keeperRegistryContract.addFunds(3, ether('10'));
 	await keeperRegistryContract.addFunds(4, ether('10'));
-
-	const tokenConverter = await TokenConverter.new(registry.address);
-	await registry.setAddressFor('TokenConverter', tokenConverter.address);
-
 
 	await ppRegistry.setUpkeepId(recurringPP.address, 1);
 	await ppRegistry.setUpkeepId(recurringPPWithFreeTrial.address, 2);

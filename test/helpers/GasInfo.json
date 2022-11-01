@@ -1,49 +1,49 @@
 {
 	"RecurringPullPayment": {
-		"createBillingModel": "0.00327172",
-		"subscribeToBillingModel": "0.00648164",
+		"createBillingModel": "0.00327205",
+		"subscribeToBillingModel": "0.00612841",
 		"cancelSubscription": "0.00111641",
 		"editBillingModel": "0.00072021",
-		"executePullPayment": "0.00297184"
+		"executePullPayment": "0.00297217"
 	},
 	"RecurringDynamicPullPayment": {
 		"createBillingModel": "0.00236401",
-		"subscribeToBillingModel": "0.00853835",
+		"subscribeToBillingModel": "0.00818545",
 		"cancelSubscription": "0.00112629",
 		"editBillingModel": "0.0004828",
-		"executePullPayment": "0.00296078"
+		"executePullPayment": "0.00260755"
 	},
 	"RecurringPPWithPaidTrial": {
-		"createBillingModel": "0.00428813",
-		"subscribeToBillingModel": "0.00438734",
+		"createBillingModel": "0.00428846",
+		"subscribeToBillingModel": "0.00403356",
 		"cancelSubscription": "0.00111657",
 		"editBillingModel": "0.00037509",
-		"executePullPayment": "0.00353469"
+		"executePullPayment": "0.00318146"
 	},
 	"RecurringPullPaymentWithFreeTrial": {
-		"createBillingModel": "0.00408299",
+		"createBillingModel": "0.00408332",
 		"subscribeToBillingModel": "0.00296685",
 		"cancelSubscription": "0.00111638",
 		"editBillingModel": "0.00037498",
-		"executePullPayment": "0.00383269"
+		"executePullPayment": "0.00347946"
 	},
 	"SingleDynamicPullPayment": {
 		"createBillingModel": "0.00214627",
-		"subscribeToBillingModel": "0.00640935",
+		"subscribeToBillingModel": "0.00627934",
 		"editBillingModel": "0.0004804"
 	},
 	"SinglePullPayment": {
-		"createBillingModel": "0.00347691",
-		"subscribeToBillingModel": "0.00523803",
-		"editBillingModel": "0.00051176"
+		"createBillingModel": "0.00347724",
+		"subscribeToBillingModel": "0.00517305",
+		"editBillingModel": "0.00051209"
 	},
 	"SwapTest": {
-		"subscribeToBillingModel(PMA->PMA)": "0.0052453",
-		"subscribeToBillingModel(WBNB->ADA)": "0.00720133",
-		"subscribeToBillingModel(ADA->WBNB)": "0.00664009",
-		"subscribeToBillingModel(ADA->ETH)": "0.00779209",
-		"subscribeToBillingModel(WBNB->PMA)": "0.00550023",
-		"subscribeToBillingModel(ADA->ADA)": "0.00624044",
-		"subscribeToBillingModel(PMA->WBNB)": "0.0053929"
+		"subscribeToBillingModel(PMA->PMA)": "0.0051807",
+		"subscribeToBillingModel(WBNB->ADA)": "0.00713728",
+		"subscribeToBillingModel(ADA->WBNB)": "0.00657604",
+		"subscribeToBillingModel(ADA->ETH)": "0.00772804",
+		"subscribeToBillingModel(WBNB->PMA)": "0.00543618",
+		"subscribeToBillingModel(ADA->ADA)": "0.00617639",
+		"subscribeToBillingModel(PMA->WBNB)": "0.00532885"
 	}
 }
