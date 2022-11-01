@@ -171,7 +171,7 @@ const keeperRegistry = {
 	42: '0x02777053d6764996e594c3E88AF1D58D5363a2e6',
 	97: '0x02777053d6764996e594c3E88AF1D58D5363a2e6',
 	56: '0x02777053d6764996e594c3E88AF1D58D5363a2e6',
-	1111: '',
+	1111: '0x02777053d6764996e594c3E88AF1D58D5363a2e6',
 	137: '0x02777053d6764996e594c3E88AF1D58D5363a2e6',
 	80001: '0x02777053d6764996e594c3E88AF1D58D5363a2e6' // USDT as BUSD
 };
@@ -192,6 +192,9 @@ const MPC_ADDRESS = {
 const ExecutionFeeReceiver = '0xb2A80b679F87530EdFB848708CA948cbF25Ca3e0'; // TODO - must be Token converter contract
 const ExecutionFee = 1000; // 10%
 
+const TotalMintCapForWrapper = '50000000000000000000000000'; // 50M
+const PumaPayWrapperAdmin = '0xaD679804243814D016eC2EB1972E745729051942';
+
 module.exports = {
 	supportedTokens,
 	PMATokenAddress,
@@ -203,5 +206,7 @@ module.exports = {
 	WBNB_ADDRESS,
 	BUSD_ADDRESS,
 	faucets,
-	keeperRegistry
+	keeperRegistry,
+	TotalMintCapForWrapper,
+	PumaPayWrapperAdmin
 };
