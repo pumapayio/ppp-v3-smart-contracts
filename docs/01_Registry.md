@@ -16,10 +16,11 @@ In this contract the `initialize()` method is used in place of the constructor t
 The initialize method is used to initialize the Registry contract and transfers the ownership of the registry to the admin who deploys the registry.
 
 #### Method signature:
-`function initialize() external;`
+`function initialize(uint256 _executionFee) external;`
 
 #### Method parameters:
-No parameters required.
+1. **\_executionFee:**:
+   Indicates the execution fee percentage. here 1% is equal to 100.
 
 ## Contract Methods
 
@@ -166,21 +167,6 @@ Indicates the token contract address which is to be removed.
 #### Returned Data:
 This method does not return any data.
 
-### updateExecutionFeeReceiver()
-#### Method Detail  
-This method allows the admin to update the execution fee receiver address.  
-This method emits a **UpdatedExecutionFeeReceiver** event
-
-#### Method signature
-`function updateExecutionFeeReceiver(address _newReceiver) public virtual`
-
-#### Method parameters
-1. **\_newReceiver:**  
-Indicates the new execution fee receiver`s address.
-
-#### Returned Data
-This method does not return any data.
-
 ### updateExecutionFee()
 #### Method Detail:  
 This method allows the admin to update the execution fee which is used to calculate the amount of PMA tokens to charge for the PullPayment execution.  
@@ -282,13 +268,6 @@ This method returns the address of theToken Converter contract.
 #### Method signature
 `function getTokenConverter() public view virtual returns (address)`
 
-### executionFeeReceiver()
-#### Method Detail:
-This method returns the address of the execution fee receiver.
-
-#### Method signature
-`function executionFeeReceiver() public view returns (address)`
-
 ### executionFee()
 #### Method Detail:
 Τhis method returns the execution fee percentage.
@@ -345,17 +324,6 @@ This event is emitted when a supported  ERC20/BEP20 token is removed from the li
 #### Event data:
 1. **\_token:**  
 Indicates the supported token`s address.
-
-### UpdatedExecutionFeeReceiver
-#### Event detail:
-This event is emitted when the admin updates the execution fee receiver address using the **updateExecutionFeeReceiver()** method.
-
-#### Event signature:
-`event UpdatedExecutionFeeReceiver(address indexed _newReceiver);`
-
-#### Event data:
-1. **\_newReceiver:**  
-Indicates the address of the new execution fee receiver.
 
 ### UpdatedExecutionFee
 #### Event detail:
