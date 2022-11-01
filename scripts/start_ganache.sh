@@ -33,13 +33,13 @@ start_ganache() {
   local fork=""
 
   if [ "$FORK" = true ]; then
-    chain_id=97
-    fork="https://data-seed-prebsc-2-s2.binance.org:8545"
+    chain_id=80001
+    fork="https://matic-mumbai.chainstacklabs.com"
   fi
 
   if [ "$FORK" = true ] && [ "$MAINNET" = true ]; then
-    chain_id=56
-    fork="https://bsc-dataseed.binance.org"
+    chain_id=137
+    fork="https://matic-mainnet.chainstacklabs.com/"
   fi
 
   if [ "$FORK" = true ] && [ "$BLOCK_NUMBER" != "" ]; then
