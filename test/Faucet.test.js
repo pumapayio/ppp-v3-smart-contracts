@@ -9,7 +9,7 @@ const Cardano = artifacts.require('BEP20Cardano');
 // BEP20 ETHEREUM Token
 const Ethereum = artifacts.require('BEP20Ethereum');
 
-contract('Faucet', (accounts) => {
+contract.skip('Faucet', (accounts) => {
 	let [owner, user] = accounts;
 
 	before('', async () => {

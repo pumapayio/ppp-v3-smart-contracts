@@ -13,7 +13,7 @@ const { ZERO_ADDRESS } = require('@openzeppelin/test-helpers/src/constants');
 const BlockData = artifacts.require('BlockData');
 // Start test block
 contract('PullPaymentRegistry', (accounts) => {
-	let [owner, merchant, customer, user, fundRceiver] = accounts;
+	let [owner, merchant, customer, user] = accounts;
 
 	const billingModel = {
 		payee: merchant,
@@ -29,6 +29,7 @@ contract('PullPaymentRegistry', (accounts) => {
 	let adaToken = {};
 	let wbnbToken = {};
 	let executor = {};
+	let fundRceiver;
 
 	before(async () => {
 		this.BlockData = await BlockData.new();
@@ -37,10 +38,8 @@ contract('PullPaymentRegistry', (accounts) => {
 		// Deploy a set of smart contracts...
 		contracts = await deploySmartContracts(
 			owner,
-			merchant,
 			customer,
 			user,
-			fundRceiver,
 			this.chainId.toString()
 		);
 		executor = contracts.executor.contract;
@@ -49,6 +48,7 @@ contract('PullPaymentRegistry', (accounts) => {
 		ethToken = contracts.ethereum.contract;
 		adaToken = contracts.cardano.contract;
 		wbnbToken = contracts.wbnb.contract;
+		fundRceiver = contracts.tokenConverter.address;
 
 		await ethToken.approve(executor.address, MaxUint256, { from: customer });
 		await adaToken.approve(executor.address, MaxUint256, { from: customer });
@@ -223,12 +223,6 @@ contract('PullPaymentRegistry', (accounts) => {
 			});
 		});
 
-		it('updateExecutionFeeReceiver()', async () => {
-			await expectRevert(
-				this.registry.updateExecutionFeeReceiver(ZERO_ADDRESS, { from: owner }),
-				'PullPaymentConfig: INVALID_FEE_RECEIVER'
-			);
-		});
 
 		it('getSupportedTokens()', async () => {
 			const supportedTokens = await this.registry.getSupportedTokens();

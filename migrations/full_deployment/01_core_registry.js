@@ -1,6 +1,6 @@
 const { deployProxy } = require('@openzeppelin/truffle-upgrades');
 const { saveAddress } = require('../scripts/saveAddress');
-const { ExecutionFeeReceiver, ExecutionFee } = require('../configurations/config');
+const { ExecutionFee } = require('../configurations/config');
 
 const name = 'Registry';
 const Registry = artifacts.require('Registry');
@@ -10,7 +10,7 @@ module.exports = async (deployer) => {
 		const networkId = deployer.network_id.toString();
 
 		// deploy Registry Contract
-		const registryDeployed = await deployProxy(Registry, [ExecutionFeeReceiver, ExecutionFee], {
+		const registryDeployed = await deployProxy(Registry, [ExecutionFee], {
 			initializer: 'initialize'
 		});
 

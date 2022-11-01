@@ -41,7 +41,6 @@ The main registry contains the following interface methods that allows users to 
 1. isOneOf()
 1. addToken()
 1. removeToken()
-1. updateExecutionFeeReceiver()
 1. updateExecutionFee()
 1. updateExtensionPeriod()
 1. getSupportedTokens()

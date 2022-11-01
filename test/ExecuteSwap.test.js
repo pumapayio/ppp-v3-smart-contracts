@@ -54,7 +54,6 @@ contract.skip('Executor', (accounts) => {
 		// Deploy a set of smart contracts...
 		contracts = await deploySmartContracts(
 			owner,
-			merchant,
 			customer,
 			user,
 			this.chainId.toString()
