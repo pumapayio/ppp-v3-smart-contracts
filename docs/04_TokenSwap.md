@@ -1,35 +1,35 @@
-# Token Swap
+# Token Swap - DEX Integration
 
 We have three main cases for pull payment execution.
 
 1. PMA -> PMA payment
-1. non-PMA -> PMA or PMA -> non-PMA payment
-1. non-PMA -> non-PMA payment
+2. non-PMA -> PMA or PMA -> non-PMA payment
+3. non-PMA -> non-PMA payment
 
 **NOTE: We always get the execution fee in PMA tokens**
 
 ## PMA -> PMA payment
 
-We need to follow following steps to execute this type of pullPayment
+We need to follow the steps below to execute this type of PullPayment
 
 1. Get PMA tokens from user
-1. Calculate and transfer execution fee in PMA token
-1. Simple transfer the remaining PMA tokens to merchant
+2. Calculate and transfer execution fee in PMA token
+3. Simple transfer the remaining PMA tokens to merchant
 
 ## non-PMA -> PMA or PMA -> non-PMA payment
 
-In this case we have only one swap path, The possible paths can be -
+In these cases we have only one swap path, The possible paths can be:
 
 - non-PMA -> PMA
 - non-PMA -> WBNB -> PMA
 - PMA -> non-PMA
 - PMA -> WBNB -> non-PMA
 
-We need to follow following steps to execute this type of pullPayment according to the possible path
+We need to follow the steps below to execute this type of PullPayment according to the possible path
 
 **non-PMA -> PMA or non-PMA -> WBNB -> PMA**
 
-In this cases we follow the following steps
+In these cases we follow the following steps
 
 1. Get non-PMA tokens from user
 1. Swap non-PMA tokens to PMA tokens
@@ -38,7 +38,7 @@ In this cases we follow the following steps
 
 **PMA -> non-PMA or PMA -> WBNB -> non-PMA**
 
-In this cases we follow the following steps
+In these cases we follow the following steps
 
 1. Get PMA tokens from user
 1. Transfer execution fee in PMA
