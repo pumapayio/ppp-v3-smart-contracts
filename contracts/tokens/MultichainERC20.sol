@@ -11,7 +11,10 @@ contract MultichainERC20 is IERC20Metadata {
 	string public override symbol;
 	uint8 public immutable override decimals;
 
+	/// @dev underlying variable. For our frontend to recognize your token. This should be set as address (0) if your token natively supports our system. 
+	/// used when your token employs a wrapper or liquidity model
 	address public immutable underlying;
+
 	bool public constant underlyingIsMinted = false;
 
 	/// @dev Records amount of AnyswapV6ERC20 token owned by account.
