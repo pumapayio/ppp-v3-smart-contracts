@@ -86,4 +86,22 @@ contract TokenConverter is RegistryHelper {
 		require(_token.balanceOf(address(this)) >= _amount, 'TokenConverter: Low_BALANCE');
 		require(_token.transfer(msg.sender, _amount), 'TokenConverter: TRANSFER_FAILED');
 	}
+
+	/**
+	 * @notice This method allows owner to update the balance multiplier for upkeep.
+	 * @param _newMultiplier - new multiplier for upkeep balance
+	 */
+	function updateBalanceMultiplier(uint256 _newMultiplier) external onlyOwner {
+		require(_newMultiplier > 0, 'TokenConverter: INVALID_MULTIPLIER');
+		MIN_BALANCE_MULTIPLIER = _newMultiplier;
+	}
+
+	/**
+	 * @notice This method allows owner to update the top up multiplier which affects the pma fund allocation for particular upkeep.
+	 * @param _newMultiplier - new multiplier
+	 */
+	function updateTopUpMultiplier(uint256 _newMultiplier) external onlyOwner {
+		require(_newMultiplier > 0, 'TokenConverter: INVALID_MULTIPLIER');
+		TOP_UP_MULTIPLIER = _newMultiplier;
+	}
 }
