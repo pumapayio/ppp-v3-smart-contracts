@@ -18,7 +18,7 @@ contract Registry is OwnableUpgradeable, CoreRegistry, PullPaymentConfig {
    	=======================================================================
  	*/
 	bytes32 constant PMA_TOKEN_REGISTRY_ID = keccak256(abi.encodePacked('PMAToken'));
-	bytes32 constant WBNB_TOKEN_REGISTRY_ID = keccak256(abi.encodePacked('WBNBToken'));
+	bytes32 constant WBNB_TOKEN_REGISTRY_ID = keccak256(abi.encodePacked('WrappedNative'));
 	bytes32 constant EXECUTOR_REGISTRY_ID = keccak256(abi.encodePacked('Executor'));
 	bytes32 constant UNISWAP_FACTORY_REGISTRY_ID = keccak256(abi.encodePacked('UniswapFactory'));
 	bytes32 constant UNISWAP_ROUTER_REGISTRY_ID = keccak256(abi.encodePacked('UniswapV2Router02'));
@@ -75,7 +75,7 @@ contract Registry is OwnableUpgradeable, CoreRegistry, PullPaymentConfig {
 	/**
 	 * @notice This method returns the address of the WBNB token contract
 	 */
-	function getWBNBToken() public view virtual returns (address) {
+	function getWrappedNative() public view virtual returns (address) {
 		return getAddressForOrDie(WBNB_TOKEN_REGISTRY_ID);
 	}
 

@@ -27,7 +27,7 @@ module.exports = async (deployer) => {
 		const registryContract = await Registry.at(addresses[networkId]['Registry']);
 
 		await registryContract.setAddressFor('PMAToken', PMAContract.address);
-		await registryContract.setAddressFor('WBNBToken', WBNBContract.address);
+		await registryContract.setAddressFor('WrappedNative', WBNBContract.address);
 
 		await saveAddress('BEP20PMA', PMAContract.address, networkId);
 	} catch (error) {

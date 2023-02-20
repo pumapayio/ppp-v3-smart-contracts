@@ -220,12 +220,12 @@ This method returns the address of the PMA token.
 #### Method signature
 `function getPMAToken() public view virtual returns (address)`
 
-### getWBNBToken()
+### getWrappedNative()
 #### Method Detail:
 This method returns the address of the WBNB token.
 
 #### Method signature
-`function getWBNBToken() public view virtual returns (address)`
+`function getWrappedNative() public view virtual returns (address)`
 
 ### getExecutor()
 #### Method Detail:

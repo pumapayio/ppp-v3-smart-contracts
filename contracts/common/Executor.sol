@@ -264,7 +264,7 @@ contract Executor is ReentrancyGuard, RegistryHelper, IExecutor, IVersionedContr
 			return (canSWap, isTwoPaths, path1, path2);
 		}
 
-		address wbnb = registry.getWBNBToken();
+		address wbnb = registry.getWrappedNative();
 
 		// CASE: PMA -> non-PMA || non-PMA -> PMA
 		if (_fromToken == pma || _toToken == pma) {
