@@ -16,14 +16,19 @@ contract PullPaymentsRegistry is OwnableUpgradeable, IPullPaymentRegistry {
    	======================== Public Variables ============================
    	=======================================================================
  	*/
+	/// @dev Indicates the number of pullpayments to execute in one batch
 	uint256 public BATCH_SIZE;
 
+	/// @notice PP Contract name => PP Address
 	mapping(bytes32 => address) public registry;
+
+	/// @notice account(PP) address => isExecutor
 	mapping(address => bool) private executors;
 
 	/// @notice upkeep contract address => upkeepId
 	mapping(address => uint256) public upkeepIds;
 
+	/// @notice userAddress => subscriptionId => true/false
 	mapping(address => mapping(uint256 => bool)) public isLowBalanceSubscription;
 
 	/*

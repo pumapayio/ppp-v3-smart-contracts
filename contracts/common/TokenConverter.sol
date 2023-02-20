@@ -14,6 +14,7 @@ contract TokenConverter is RegistryHelper {
 	IKeeperRegistry keeperRegistry;
 
 	event TopUpPerformed(uint256 upkeepId, uint256 topUpAmount, uint256 timeStamp);
+	event EmergencyTokenWithdrawal(address token, uint256 tokenAmount, uint256 timeStamp);
 
 	constructor(address _mainRegistry) RegistryHelper(_mainRegistry) {
 		address routerAddress = registry.getUniswapRouter();
@@ -74,5 +75,33 @@ contract TokenConverter is RegistryHelper {
 				emit TopUpPerformed(_upkeepId, amounts[1], block.timestamp);
 			}
 		}
+	}
+
+	/**
+	 * @notice This method allows owner to withdraw the dust tokens.
+	 * @param _token - ERC20/IBEP20 token address
+	 * @param _amount - amount of tokens to withdraw
+	 */
+	function emergencyTokenWithdraw(IBEP20 _token, uint256 _amount) external onlyOwner {
+		require(_token.balanceOf(address(this)) >= _amount, 'TokenConverter: Low_BALANCE');
+		require(_token.transfer(msg.sender, _amount), 'TokenConverter: TRANSFER_FAILED');
+	}
+
+	/**
+	 * @notice This method allows owner to update the balance multiplier for upkeep.
+	 * @param _newMultiplier - new multiplier for upkeep balance
+	 */
+	function updateBalanceMultiplier(uint256 _newMultiplier) external onlyOwner {
+		require(_newMultiplier > 0, 'TokenConverter: INVALID_MULTIPLIER');
+		MIN_BALANCE_MULTIPLIER = _newMultiplier;
+	}
+
+	/**
+	 * @notice This method allows owner to update the top up multiplier which affects the pma fund allocation for particular upkeep.
+	 * @param _newMultiplier - new multiplier
+	 */
+	function updateTopUpMultiplier(uint256 _newMultiplier) external onlyOwner {
+		require(_newMultiplier > 0, 'TokenConverter: INVALID_MULTIPLIER');
+		TOP_UP_MULTIPLIER = _newMultiplier;
 	}
 }
