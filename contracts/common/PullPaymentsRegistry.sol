@@ -16,7 +16,7 @@ contract PullPaymentsRegistry is OwnableUpgradeable, IPullPaymentRegistry {
    	======================== Public Variables ============================
    	=======================================================================
  	*/
-	/// @dev Indicates the number of pullpayments to execute in one batch 
+	/// @dev Indicates the number of pullpayments to execute in one batch
 	uint256 public BATCH_SIZE;
 
 	/// @notice PP Contract name => PP Address
@@ -43,8 +43,8 @@ contract PullPaymentsRegistry is OwnableUpgradeable, IPullPaymentRegistry {
 	function initialize() external virtual initializer {
 		__Ownable_init();
 
-		BATCH_SIZE = 20; // TODO- need to finalize the batch size
- 	}
+		BATCH_SIZE = 20;
+	}
 
 	/*
    	=======================================================================
