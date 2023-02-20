@@ -92,7 +92,7 @@ const deploySmartContracts = async (owner, customer, user, networkId) => {
 
 	// Registry Setup
 	await registry.setAddressFor('PMAToken', PMAContract.address, { from: owner });
-	await registry.setAddressFor('WBNBToken', wbnb.address, { from: owner });
+	await registry.setAddressFor('WrappedNative', wbnb.address, { from: owner });
 
 	// network id 1 for coverage
 	if (networkId == '1111' || networkId == '1') {

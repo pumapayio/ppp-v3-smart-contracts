@@ -229,8 +229,8 @@ contract('PullPaymentRegistry', (accounts) => {
 			expect(supportedTokens.length).to.be.gt(0);
 		});
 
-		it('getWBNBToken()', async () => {
-			const wbnbAddress = await this.registry.getWBNBToken();
+		it('getWrappedNative()', async () => {
+			const wbnbAddress = await this.registry.getWrappedNative();
 			expect(wbnbAddress).to.be.eq(wbnbToken.address);
 		});
 

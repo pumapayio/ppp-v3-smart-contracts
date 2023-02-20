@@ -7,7 +7,7 @@ import './IPullPaymentConfig.sol';
 interface IRegistry is ICoreRegistry, IPullPaymentConfig {
 	function getPMAToken() external view returns (address);
 
-	function getWBNBToken() external view returns (address);
+	function getWrappedNative() external view returns (address);
 
 	function getFreezer() external view returns (address);
 
