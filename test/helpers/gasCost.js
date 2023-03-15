@@ -19,7 +19,6 @@ const getGasCost = async (contractName, operationName, gasUsed) => {
 	}
 
 	data[contractName.toString()][operationName.toString()] = gasToEth(gasUsed).toString();
-	console.log('data: ', data);
 
 	fs.writeFile(addresssPath, JSON.stringify(data), (err) => {
 		if (err) throw err;
